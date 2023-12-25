@@ -2,14 +2,33 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--dark);
+  background-color: var(--dark);
+  color: white;
   height: 2em;
   padding: 2em;
 }
 
 #body-container {
-  background-color: var(--dark);
-  color: white;
+  color: var(--dark);
   min-height: calc(100vh - 2em);
   padding: 1em;
+}
+.column-item-dark, .column-item-light {
+  padding: 2em 1em;
+  color: var(--dark);
+  margin: 2em 1em;
+}
+.column-item-dark {
+  background: linear-gradient(rgba(156, 39, 176, 0.3), #fff);
+}
+
+.column-item-light {
+  background: linear-gradient(rgba(255, 138, 0, 0.2), #fff);
+}
+
+@media (min-width: 850px) {
+  .two-column {
+    display: flex;
+    grid-template-columns: 1fr 1fr;
+  }
 }
