@@ -26,7 +26,9 @@ function App() {
         <div id='body-container'>
             <div className='two-column'>
                 <section>
-                    <h2>Properties for the Parent (flex container)</h2>
+                    <div className='column-item'>
+                        <h2>Properties for the Parent (flex container)</h2>
+                    </div>
                     <div className='column-item-dark'>
                         <h3>display</h3>
                         <p>This defines a flex container. It can be inline or block depending on the given value. It enables a flex context for all its direct children.</p>
@@ -112,8 +114,10 @@ function App() {
                     </div>
                 </section>
                 <section>
-                    <h2>Properties for the Children
-                        (flex items)</h2>
+                    <div className='column-item'>
+                        <h2>Properties for the Children
+                            (flex items)</h2>
+                    </div>
                     <div className='column-item-light'>
                         <h3>order</h3>
                         <p>By default, flex items are laid out in the source order. However, the order property controls the order in which they appear in the flex container.</p>

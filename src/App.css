@@ -13,10 +13,12 @@ header {
   min-height: calc(100vh - 2em);
   padding: 1em;
 }
-.column-item-dark, .column-item-light {
+.column-item, .column-item-dark, .column-item-light {
   padding: 2em 1em;
-  color: var(--dark);
   margin: 2em 1em;
+}
+.column-item-dark, .column-item-light {
+  color: var(--dark);
 }
 .column-item-dark {
   background: linear-gradient(rgba(156, 39, 176, 0.3), #fff);
@@ -25,10 +27,11 @@ header {
 .column-item-light {
   background: linear-gradient(rgba(255, 138, 0, 0.2), #fff);
 }
-
 @media (min-width: 850px) {
   .two-column {
     display: flex;
-    grid-template-columns: 1fr 1fr;
+  }
+  .two-column section {
+    width: 50%;
   }
 }
