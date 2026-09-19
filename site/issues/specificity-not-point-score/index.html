@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="CSS specificity is a three-column comparison, not arithmetic. Learn why eleven classes can never beat one ID — and how :where(), :is(), and @layer change the rules." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>Specificity Is Not a Point Score — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 3 · Cascade</div>
+          <h1 class="headline">Specificity Is Not a Point Score</h1>
+          <p class="deck">Browsers don't add up selector points — they compare three columns, left to right, and stop the moment one differs. Once you see it that way, the rules that seemed arbitrary start making sense.</p>
+        </header>
+
+<p class="lede">Two rules target the same element. One uses an ID selector. The other stacks eleven class selectors. According to the "points" model taught in most beginner resources, those eleven classes total 110 points against the ID's 100 — so the classes should win. They don't. The ID wins every time, and understanding why means throwing out the points model entirely.</p>
+
+<p>CSS specificity is the algorithm browsers use to decide which declaration wins when more than one rule targets the same element. The algorithm is not arithmetic. It is a <strong>three-column comparison</strong> — ID, CLASS, TYPE — evaluated left to right, column by column. The columns never carry over into each other. No quantity of class selectors can ever outweigh a single ID selector, because the moment the ID columns differ, the comparison is over and the class column is never consulted.</p>
+
+<p>That broken intuition — specificity as a numeric score — is the most persistent mistake in CSS education. It causes real damage: selectors that pile up to "win," stylesheets that grow progressively harder to override, and debugging sessions spent on the wrong problem entirely.</p>
+
+<h2 class="section-head">The three columns, read left to right</h2>
+
+<p class="section-intro">Every selector produces a weight written as three numbers: <code>(ID, CLASS, TYPE)</code>. To compare two weights, start at the left. The first column where they differ decides the winner. If all three columns are equal, source order breaks the tie.</p>
+
+<section class="prop">
+  <h3>TYPE — the rightmost column</h3>
+  <p>Element selectors and pseudo-elements each contribute 1 to the TYPE column. <code>p</code>, <code>div</code>, <code>h2</code>, <code>::before</code> — all score <code>(0, 0, 1)</code>. The universal selector <code>*</code> and all combinators (<code>&gt;</code>, <code>+</code>, <code>~</code>, a space) contribute nothing — they score <code>(0, 0, 0)</code>. This surprises many beginners: <code>div &gt; p</code> is not meaningfully "more specific" than <code>p</code> beyond the extra element.</p>
+  <pre class="language-css dark"><code>/* (0, 0, 1) — one element */
+p { color: navy; }
+
+/* (0, 0, 2) — two elements */
+article p { color: teal; }
+
+/* (0, 0, 0) — combinator adds nothing */
+* { color: gray; }</code></pre>
+</section>
+
+<section class="prop">
+  <h3>CLASS — the middle column</h3>
+  <p>Class selectors, attribute selectors, and pseudo-classes (except those noted below) each add 1 to the CLASS column. <code>.card</code> scores <code>(0, 1, 0)</code>. <code>.card.featured</code> scores <code>(0, 2, 0)</code>. A rule at <code>(0, 2, 0)</code> beats any rule at <code>(0, 1, anything)</code> — the middle column is compared first, and the right column is irrelevant once a difference is found.</p>
+  <pre class="language-css dark"><code>/* (0, 1, 0) */
+.card { background: white; }
+
+/* (0, 2, 0) — wins over the rule above */
+.card.featured { background: gold; }
+
+/* (0, 1, 1) — loses to .card.featured; middle column is 1 vs 2 */
+.card p { background: ivory; }</code></pre>
+</section>
+
+<section class="prop">
+  <h3>ID — the leftmost column</h3>
+  <p>ID selectors add 1 to the leftmost column. <code>#header</code> scores <code>(1, 0, 0)</code>. Because the ID column is compared before the others, any rule with even a single ID selector outweighs any rule built entirely from classes and elements — no matter how many.</p>
+  <pre class="language-css dark"><code>/* (1, 0, 0) — wins */
+#header { font-size: 2rem; }
+
+/* (0, 11, 0) — loses, despite eleven classes */
+.a.b.c.d.e.f.g.h.i.j.k { font-size: 1rem; }</code></pre>
+  <p>This is the example that breaks the points model. Eleven classes at "10 points each" would total 110, beating the ID's supposed 100. But the browser never reaches the class column. The ID column reads 1 versus 0, and the comparison is done.</p>
+</section>
+
+<h2 class="section-head">What sits above the three columns</h2>
+
+<p class="section-intro">Inline styles and <code>!important</code> are not part of the three-column selector weight. Beginners routinely fold them in as if they were extra columns — they occupy different layers of the cascade entirely.</p>
+
+<p><strong>Inline styles</strong> — written directly on an element via the <code>style</code> attribute — effectively occupy a fourth column above the three-column selector weight. MDN represents this as <code>(1, 0, 0, 0)</code> in four-column notation. They beat any selector-based rule for the same property, regardless of specificity.</p>
+
+<p><strong><code>!important</code></strong> is not a specificity value at all. It moves a declaration into a separate, higher-priority tier of the cascade — the "important" origin. Two <code>!important</code> declarations are then compared by specificity among themselves, but the mechanism is cascade origin, not selector weight. Treating <code>!important</code> as "infinite specificity" is a useful shorthand, but it obscures what is actually happening and makes cascade layers harder to reason about later.</p>
+
+<h2 class="section-head">Inheritance has no specificity</h2>
+
+<p>A property that reaches an element through inheritance — because a parent was styled and the child inherited the value — carries <strong>no specificity whatsoever</strong>. A directly targeted rule with a specificity of <code>(0, 0, 1)</code> will always beat an inherited value, even if the inherited rule had a specificity of <code>(1, 0, 0)</code> on the parent. This is the source of many "why won't my color change?" puzzles, and it is almost never explained clearly in beginner resources.</p>
+
+<pre class="language-css dark"><code>/* Applied to the parent — specificity (1, 0, 0) */
+#page { color: crimson; }
+
+/* Applied directly to the child — specificity (0, 0, 1); wins */
+p { color: navy; }</code></pre>
+
+<p>The <code>p</code> element gets <code>navy</code>, not <code>crimson</code>, even though the ID rule has higher specificity. The ID rule never targeted <code>p</code> directly — it targeted a parent. Direct targeting always beats inheritance.</p>
+
+<h2 class="section-head">Modern pseudo-classes reshape the game</h2>
+
+<p class="section-intro">Three pseudo-classes introduced in recent years change how specificity is calculated in ways that are increasingly central to modern CSS architecture — not edge cases to skip over.</p>
+
+<section class="prop">
+  <h3>:where() — deliberate zero specificity</h3>
+  <p><code>:where()</code> always resolves to <code>(0, 0, 0)</code>, regardless of what selectors are inside it. This makes it a precision tool for writing base styles and resets that anything can override without a specificity fight.</p>
+  <pre class="language-css dark"><code>/* (0, 0, 0) — anything can override this */
+:where(h1, h2, h3) { margin-block: 1em; }
+
+/* (0, 0, 1) — wins over the :where() rule above */
+h2 { margin-block: 1.5em; }</code></pre>
+  <p>Design systems use <code>:where()</code> for default component styles precisely because it removes the specificity burden from the consumer. Support is broad across modern browsers.</p>
+</section>
+
+<section class="prop">
+  <h3>:is() and :has() — inheriting argument specificity</h3>
+  <p>Unlike <code>:where()</code>, both <code>:is()</code> and <code>:has()</code> take the specificity of their <strong>most specific argument</strong>. <code>:is(#header, .nav, p)</code> resolves to <code>(1, 0, 0)</code> — the specificity of <code>#header</code> — even if only the <code>p</code> elements are actually matched. The specificity is determined at parse time by the selector list, not by which element matched at runtime.</p>
+  <pre class="language-css dark"><code>/* Resolves to (1, 0, 0) — because #header is in the list */
+:is(#header, p) { font-size: 1rem; }
+
+/* (0, 0, 1) — loses, even though it looks simpler */
+p { font-size: 0.875rem; }</code></pre>
+  <p><code>:has()</code> reached Firefox in late 2023 and sits at roughly 92% browser support as of 2024. Its specificity behaviour is consistent across supporting browsers, but legacy environments will not recognise it.</p>
+</section>
+
+<section class="prop">
+  <h3>@layer — above the specificity game entirely</h3>
+  <p>Cascade layers, declared with <code>@layer</code>, sit above specificity in the cascade order. A rule in a higher-priority layer beats a rule in a lower-priority layer regardless of selector specificity. A <code>(0, 0, 1)</code> element rule in a higher layer can override a <code>(1, 0, 0)</code> ID rule in a lower layer — something impossible with specificity alone.</p>
+  <pre class="language-css dark"><code>@layer base, theme;
+
+@layer base {
+  /* (1, 0, 0) — but in the lower-priority layer */
+  #page { color: crimson; }
+}
+
+@layer theme {
+  /* (0, 0, 1) — but in the higher-priority layer; wins */
+  p { color: navy; }
+}</code></pre>
+  <p>Cascade layers are supported in all modern browsers but absent from IE and older evergreen versions. If your codebase targets legacy environments, layers are not yet available — but understanding that they sit above specificity prepares you for the architecture shift when they are.</p>
+</section>
+
+<p>The practical takeaway is a single habit: write selectors as low-specificity as the design requires, and no higher. Reach for <code>:where()</code> when you want a style that anything downstream can override without a fight. Reserve IDs for JavaScript hooks and page landmarks, not styling. And when a rule refuses to apply, check source order and inheritance before assuming specificity is the culprit — the cascade has more moving parts than the specificity column alone.</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Specificity" rel="noopener noreferrer" target="_blank">Specificity - CSS - MDN Web Docs</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Handling_conflicts" rel="noopener noreferrer" target="_blank">Handling conflicts - Learn web development | MDN</a></li>
+    <li><a href="https://www.w3schools.com/css/css_specificity.asp" rel="noopener noreferrer" target="_blank">CSS Specificity</a></li>
+    <li><a href="https://dev.to/smitterhane/how-to-calculate-css-specificity-of-your-style-rules-moj" rel="noopener noreferrer" target="_blank">How to calculate CSS specificity of your style rules</a></li>
+    <li><a href="https://playfulprogramming.com/posts/css-specificity-explained" rel="noopener noreferrer" target="_blank">Let&#x27;s Be Specific: CSS Specificity Explained</a></li>
+    <li><a href="https://stackoverflow.com/questions/2809024/how-are-the-points-in-css-specificity-calculated" rel="noopener noreferrer" target="_blank">How are the points in CSS specificity calculated</a></li>
+    <li><a href="https://www.linkedin.com/advice/3/what-common-mistakes-do-developers-make-css-specificity-12coc" rel="noopener noreferrer" target="_blank">Top CSS Specificity Mistakes Developers Make</a></li>
+    <li><a href="https://piccalil.li/blog/a-primer-on-the-cascade-and-specificity/" rel="noopener noreferrer" target="_blank">A primer on the cascade and specificity - Piccalilli</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
