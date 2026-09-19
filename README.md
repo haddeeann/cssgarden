@@ -1,6 +1,6 @@
-# CSS Garden
+# Foxy CSS
 
-CSS Garden is a small, independently tended magazine about CSS. Each issue gives one concept room to breathe, pairing a practical explanation with an interactive demo.
+Foxy CSS is a small, independently tended magazine about CSS. Each issue gives one concept room to breathe, pairing a practical explanation with an interactive demo.
 
 Issue 1 covers Flexbox: the container properties, the item properties, and a live playground for seeing how they work together.
 
@@ -8,7 +8,7 @@ Issue 1 covers Flexbox: the container properties, the item properties, and a liv
 
 - `/` — published issues
 - `/issues/flexbox` — Issue 1: Flexbox
-- `/about` — about CSS Garden
+- `/about` — about Foxy CSS
 
 ## Local development
 

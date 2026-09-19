@@ -24,7 +24,7 @@ function Masthead({ current }) {
   return (
     <header className="masthead">
       <div className="rail masthead-row">
-        <a className="nameplate" href="/">CSS Garden</a>
+        <a className="nameplate" href="/">Foxy CSS</a>
         <nav className="masthead-links" aria-label="Primary navigation">
           <a className={current === 'issues' ? 'current' : ''} href="/">Issues</a>
           <a className={current === 'about' ? 'current' : ''} href="/about">About</a>
@@ -37,7 +37,7 @@ function Masthead({ current }) {
 function PageFooter() {
   return (
     <footer className="site-footer">
-      <span>CSS Garden</span>
+      <span>Foxy CSS</span>
       <span>Written slowly. Tested in the browser. Supervised by dogs.</span>
     </footer>
   );
@@ -286,11 +286,11 @@ function About() {
         <article className="about-page">
           <header className="opener">
             <div className="kicker">Behind the hedges</div>
-            <h1 className="headline">About CSS Garden</h1>
+            <h1 className="headline">About Foxy CSS</h1>
           </header>
 
-          <p className="lede">CSS Garden started the way most gardens do: badly, with too many ideas planted too close together and no idea what half of them would grow into. What’s left is a small magazine about CSS, tended by one person and supervised, loosely, by two dogs who have never once respected the concept of a deadline.</p>
-          <p>The name isn’t just cute. CSS has always felt more like landscaping than engineering to us — you’re not building a machine, you’re arranging things in space so they grow into each other the way you meant them to. Some properties are hedges. Some are trellises. Flexbox, frankly, is a really good trellis, and we said so at length in Issue 1.</p>
+          <p className="lede">Foxy CSS started the way most gardens do: badly, with too many ideas planted too close together and no idea what half of them would grow into. What’s left is a small magazine about CSS, tended by one person and supervised, loosely, by two dogs who have never once respected the concept of a deadline.</p>
+          <p>The premise isn’t just cute. CSS has always felt more like landscaping than engineering to us — you’re not building a machine, you’re arranging things in space so they grow into each other the way you meant them to. Some properties are hedges. Some are trellises. Flexbox, frankly, is a really good trellis, and we said so at length in Issue 1.</p>
           <p>Every issue picks one concept and gives it room to actually breathe — no listicles, no “20 CSS hacks that will blow your mind,” just a proper explanation and a demo you can get your hands dirty in, because reading about a garden and walking through one are different experiences entirely. The dogs do not review the code, but they do sleep under the desk while it’s written, which we count as moral support.</p>
           <p>We’re not trying to cover everything CSS has ever done. We’re trying to cover a few things well, at a pace that lets the writing stay good and the demos stay honest — which also happens to be the only pace compatible with two dogs who insist on a walk at 7am regardless of what’s due.</p>
           <p>New issues arrive whenever something’s ready, not on a schedule, the same way nothing in an actual garden shows up exactly on time either. Flexbox bloomed first. Grid is next up, weather — and dog cooperation — permitting.</p>
@@ -319,12 +319,12 @@ function App() {
 
   useEffect(() => {
     const titles = {
-      '/': 'CSS Garden — Issues',
-      '/issues': 'CSS Garden — Issues',
-      [issuePath]: 'How to stop fighting your layout — CSS Garden',
-      '/about': 'About — CSS Garden',
+      '/': 'Foxy CSS — Issues',
+      '/issues': 'Foxy CSS — Issues',
+      [issuePath]: 'How to stop fighting your layout — Foxy CSS',
+      '/about': 'About — Foxy CSS',
     };
-    document.title = titles[path] || 'CSS Garden';
+    document.title = titles[path] || 'Foxy CSS';
   }, [path]);
 
   if (path === '/' || path === '/issues') return <IssuesIndex />;

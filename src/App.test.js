@@ -23,6 +23,6 @@ test('updates generated CSS in the article playground', () => {
 test('renders the supplied about copy', () => {
   window.history.pushState({}, '', '/about');
   render(<App />);
-  expect(screen.getByRole('heading', { name: 'About CSS Garden' })).toBeTruthy();
+  expect(screen.getByRole('heading', { name: 'About Foxy CSS' })).toBeTruthy();
   expect(screen.getByText(/supervised, loosely, by two dogs/i)).toBeTruthy();
 });
