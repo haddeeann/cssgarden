@@ -1,1 +1,32 @@
-A CSS style garden, because CSS is a fun way to make art. And useful to keep a library of ways to make CSS patterns.
+# CSS Garden
+
+CSS Garden is a small, independently tended magazine about CSS. Each issue gives one concept room to breathe, pairing a practical explanation with an interactive demo.
+
+Issue 1 covers Flexbox: the container properties, the item properties, and a live playground for seeing how they work together.
+
+## Pages
+
+- `/` — published issues
+- `/issues/flexbox` — Issue 1: Flexbox
+- `/about` — about CSS Garden
+
+## Local development
+
+Install the dependencies and start the development server:
+
+```sh
+npm install
+npm start
+```
+
+Create a production build with:
+
+```sh
+npm run build
+```
+
+Run the interaction checks with:
+
+```sh
+npm test -- --watchAll=false
+```
