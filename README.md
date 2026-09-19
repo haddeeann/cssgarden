@@ -10,23 +10,20 @@ Issue 1 covers Flexbox: the container properties, the item properties, and a liv
 - `/issues/flexbox` — Issue 1: Flexbox
 - `/about` — about Foxy CSS
 
+The site is static HTML, CSS, and a little JavaScript for the Flexbox playground. Netlify publishes the `site/` folder on every push to `main`.
+
 ## Local development
 
-Install the dependencies and start the development server:
+Serve the site locally:
 
 ```sh
-npm install
 npm start
 ```
 
-Create a production build with:
+That opens a static server for the `site/` directory.
+
+Run the checks with:
 
 ```sh
-npm run build
-```
-
-Run the interaction checks with:
-
-```sh
-npm test -- --watchAll=false
+npm test
 ```

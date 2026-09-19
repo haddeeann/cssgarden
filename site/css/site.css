@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,480;0,9..144,600;1,9..144,420&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+
 :root {
   --paper: #f1f2ea;
   --paper-raised: #fbfbf7;
@@ -31,6 +33,34 @@
     --code-text: #e9eae2;
     color-scheme: dark;
   }
+}
+
+html {
+  box-sizing: border-box;
+  min-width: 320px;
+  padding-top: env(safe-area-inset-top, 0);
+  scroll-padding-top: env(safe-area-inset-top, 0);
+}
+
+*, *::before, *::after { box-sizing: inherit; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input { font: inherit; }
+
+code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.88em;
 }
 
 a { color: var(--accent); }
@@ -352,15 +382,36 @@ input:focus-visible {
 
 .not-found { padding-top: 80px; }
 
+.article-sources {
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+}
+
+.article-sources h2 {
+  margin: 0 0 12px;
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-style: italic;
+  font-weight: 480;
+}
+
+.article-sources ol {
+  max-width: 62ch;
+  padding-left: 20px;
+}
+
+.article-sources li { margin-bottom: 6px; }
+
 @media (max-width: 520px) {
+  body { font-size: 17px; }
   .rail { width: min(100% - 32px, 700px); }
   .masthead-row { align-items: flex-start; }
   .masthead-links { width: 100%; justify-content: space-between; gap: 10px; }
   .opener { padding-top: 40px; }
-  .controls { grid-template-columns: 1fr; }
+  .controls { grid-template-columns: 1fr; padding-inline: 12px; }
   .row-label { padding-top: 6px; }
   .editor-stage { min-height: 240px; margin-inline: 12px; }
-  .controls { padding-inline: 12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

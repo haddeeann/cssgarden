@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="Issue 1 of Foxy CSS: Flexbox, the container properties, the item properties, and a live playground." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>How to stop fighting your layout — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 1 · Flexbox</div>
+          <h1 class="headline">How to stop fighting your layout</h1>
+          <p class="deck">One axis, a short list of properties, and most of the tricks the float era needed just aren’t necessary anymore. Here’s the whole model — and a box below you can push around yourself.</p>
+        </header>
+
+        <section class="playground" aria-labelledby="playground-title">
+          <h2 class="playground-label" id="playground-title">Try it — change the container, watch the items respond</h2>
+          <div class="editor-stage" data-flex-stage aria-live="polite">
+            <div class="editor-item">1</div>
+            <div class="editor-item">2</div>
+            <div class="editor-item">3</div>
+            <div class="editor-item">4</div>
+            <div class="editor-item">5</div>
+            <div class="editor-item">6</div>
+            <div class="editor-item">7</div>
+          </div>
+
+          <div class="controls">
+            <div class="row-label" id="direction-label">flex-direction</div>
+            <div class="pillset" data-group="direction" aria-labelledby="direction-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="row">row</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="row-reverse">row-reverse</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="column">column</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="column-reverse">column-reverse</button>
+            </div>
+
+            <div class="row-label" id="wrap-label">flex-wrap</div>
+            <div class="pillset" data-group="wrap" aria-labelledby="wrap-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="nowrap">nowrap</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="wrap">wrap</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="wrap-reverse">wrap-reverse</button>
+            </div>
+
+            <div class="row-label" id="justify-label">justify-content</div>
+            <div class="pillset" data-group="justify" aria-labelledby="justify-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="flex-start">flex-start</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="flex-end">flex-end</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="center">center</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="space-between">space-between</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="space-around">space-around</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="space-evenly">space-evenly</button>
+            </div>
+
+            <div class="row-label" id="alignItems-label">align-items</div>
+            <div class="pillset" data-group="alignItems" aria-labelledby="alignItems-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="stretch">stretch</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="flex-start">flex-start</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="flex-end">flex-end</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="center">center</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="baseline">baseline</button>
+            </div>
+
+            <div class="row-label" id="alignContent-label">align-content</div>
+            <div class="pillset" data-group="alignContent" aria-labelledby="alignContent-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="normal">normal</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="flex-start">flex-start</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="center">center</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="space-between">space-between</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="space-around">space-around</button>
+            </div>
+
+            <label class="row-label" for="gap-slider">gap</label>
+            <div class="gap-row">
+              <input id="gap-slider" type="range" min="0" max="32" value="0" />
+              <output class="gap-value" for="gap-slider">0px</output>
+            </div>
+          </div>
+
+          <pre class="live-output" aria-label="Generated CSS"><code data-flex-output>.container {
+  display: flex;
+}</code></pre>
+        </section>
+
+        <p class="lede">Before flexbox, centering something vertically was a small ordeal involving table display hacks or absolute positioning and negative margins. Flexbox fixed that by giving the browser an actual model for distributing space along one direction at a time. Set a container to <code>display: flex</code>, and every rule below starts working together instead of against each other.</p>
+
+        <p>The properties split cleanly into two groups. One set lives on the parent and decides how space gets divided up. The other lives on the children, who can accept that division or ask for something different.</p>
+
+        <h2 class="section-head">The container sets the rules</h2>
+        <p class="section-intro">Everything here goes on the parent element — the thing you turn into a flex context.</p>
+
+        <section class="prop">
+          <h3>display</h3>
+          <p>This is the switch. <code>flex</code> turns the element into a block-level flex container; <code>inline-flex</code> does the same but keeps the container itself inline. Either way, every direct child becomes a flex item the moment you set this.</p>
+          <pre class="language-css dark"><code>.container {
+  display: flex; /* or inline-flex */
+}
+</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>flex-direction</h3>
+          <p>This decides the main axis — the direction items are laid out before anything else gets involved. Everything else on this page is defined relative to whatever you set here.</p>
+          <ul>
+            <li><code>row</code> (default) — left to right</li>
+            <li><code>row-reverse</code> — right to left</li>
+            <li><code>column</code> — top to bottom</li>
+            <li><code>column-reverse</code> — bottom to top</li>
+          </ul>
+          <pre class="language-css dark"><code>.container {
+  flex-direction: row | row-reverse | column | column-reverse;
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>flex-wrap</h3>
+          <p>By default every item tries to fit on a single line, shrinking if it has to. This property lets them give up and wrap instead — which matters the moment your content is more flexible than your container’s width.</p>
+          <ul>
+            <li><code>nowrap</code> (default) — one line, shrink to fit</li>
+            <li><code>wrap</code> — wraps top to bottom</li>
+            <li><code>wrap-reverse</code> — wraps bottom to top</li>
+          </ul>
+          <pre class="language-css dark"><code>.container {
+  flex-wrap: nowrap | wrap | wrap-reverse;
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>flex-flow</h3>
+          <p>This shorthand sets <code>flex-direction</code> and <code>flex-wrap</code> together in one declaration.</p>
+          <pre class="language-css dark"><code>.container {
+  flex-flow: column wrap;
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>justify-content</h3>
+          <p>Distributes leftover space along the main axis — whichever axis <code>flex-direction</code> pointed at. This is the property that answers “why won’t my items spread out?”</p>
+          <ul>
+            <li><code>flex-start</code> (default), <code>flex-end</code>, <code>center</code></li>
+            <li><code>space-between</code> — first and last items flush to the edges</li>
+            <li><code>space-around</code> — equal space around each item</li>
+            <li><code>space-evenly</code> — equal space between and around every item</li>
+          </ul>
+          <pre class="language-css dark"><code>.container {
+  justify-content: flex-start | flex-end | center | space-between | space-around | space-evenly | start | end | left | right ... + safe | unsafe;
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>align-items</h3>
+          <p>The cross-axis equivalent of <code>justify-content</code>. <code>stretch</code> is the value that surprises people: with no height set, items stretch to fill the container unless you tell them otherwise.</p>
+          <ul>
+            <li><code>stretch</code> (default) — fills the cross axis</li>
+            <li><code>flex-start</code>, <code>flex-end</code>, <code>center</code></li>
+            <li><code>baseline</code> — aligns by text baseline</li>
+          </ul>
+          <pre class="language-css dark"><code>.container {
+  align-items: stretch | flex-start | flex-end | center | baseline | first baseline | last baseline | start | end | self-start | self-end + ... safe | unsafe;
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>align-content</h3>
+          <p>Easy to confuse with <code>align-items</code>, but this only does anything once wrapping has produced more than one line. It distributes space between the lines themselves, not the items within a line.</p>
+          <pre class="language-css dark"><code>.container {
+  align-content: flex-start | flex-end | center | space-between | space-around | space-evenly | stretch | start | end | baseline | first baseline | last baseline + ... safe | unsafe;
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>gap</h3>
+          <p>Puts fixed space between items without touching the outer edges of the container — no more margin hacks with a rule to cancel out the last item. <code>row-gap</code> and <code>column-gap</code> control each axis separately.</p>
+          <pre class="language-css dark"><code>.container {
+  display: flex;
+  ...
+  gap: 10px;
+  gap: 10px 20px; /* row-gap column gap */
+  row-gap: 10px;
+  column-gap: 20px;
+}</code></pre>
+        </section>
+
+        <h2 class="section-head">The items get a say too</h2>
+        <p class="section-intro">These go on the children. A child can override almost anything the container decided for it individually.</p>
+
+        <section class="prop">
+          <h3>order</h3>
+          <p>Items lay out in source order by default, but this reassigns it. It is visual order only; screen readers and tab order still follow the markup, so use it for cosmetics, not restructuring.</p>
+          <pre class="language-css dark"><code>.item {
+  order: 5; /* default is 0 */
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>flex-grow</h3>
+          <p>A unitless number that sets how much of the leftover space an item should claim relative to its siblings. If every item has <code>flex-grow: 1</code>, remaining space splits evenly.</p>
+          <pre class="language-css dark"><code>.item {
+  flex-grow: 4; /* default 0 */
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>flex-shrink</h3>
+          <p>The inverse of <code>flex-grow</code>: how willing an item is to shrink below its starting size when the container is too small. A value of 0 makes an item refuse to shrink.</p>
+          <pre class="language-css dark"><code>.item {
+  flex-shrink: 3; /* default 1 */
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>flex-basis</h3>
+          <p>Sets an item’s starting size along the main axis before grow or shrink gets applied. Think of it as width’s replacement when you’re thinking in the flex direction.</p>
+          <pre class="language-css dark"><code>.item {
+  flex-basis:  | auto; /* default auto */
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>flex</h3>
+          <p>The shorthand for grow, shrink, and basis, in that order — and the one you should usually reach for. It fills in sensible defaults for whichever values you omit.</p>
+          <pre class="language-css dark"><code>.item {
+  flex: none | [ &lt;'flex-grow'&gt; &lt;'flex-shrink'&gt;? || &lt;'flex-basis'&gt; ]
+}</code></pre>
+        </section>
+
+        <section class="prop">
+          <h3>align-self</h3>
+          <p>Lets one item opt out of the container’s <code>align-items</code> value and pick its own cross-axis alignment instead.</p>
+          <pre class="language-css dark"><code>.item {
+  align-self: auto | flex-start | flex-end | center | baseline | stretch;
+}</code></pre>
+        </section>
+
+        <footer class="post-footer">
+          <div><span class="tag">CSS basics</span><span class="tag">layout</span></div>
+          <div>Next issue: Grid, and when to reach for it instead.</div>
+        </footer>
+      </article>
+    </main>
+
+    <script type="module" src="/js/playground.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>

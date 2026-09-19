@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="Specificity is only step four. Learn all five cascade steps — origin, layers, specificity, and order — and stop losing fights you should win." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>The Cascade Is a Decision Tree, Not a Ranking — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 2 · The Cascade</div>
+          <h1 class="headline">The Cascade Is a Decision Tree, Not a Ranking</h1>
+          <p class="deck">Specificity is only question four in a five-step algorithm. Understanding the full sequence explains every rule that ever felt like it shouldn't have won.</p>
+        </header>
+
+<p class="lede">Every browser resolves style conflicts by running the same five-question algorithm — and specificity, the one step most developers know by name, is only question four. The rules that feel mysterious — why <code>!important</code> sometimes loses, why a low-specificity reset can beat a carefully crafted component style — stop being mysterious the moment you see the full sequence.</p>
+
+<h2 class="section-head">Five questions, in order</h2>
+
+<p class="section-intro">The cascade is a tiebreaker, not a ranking. The browser works through its questions one at a time and stops the moment one produces a single winner. If you've ever added a more-specific selector and still lost the fight, the fight was already over at an earlier step.</p>
+
+<p>The five steps, in the order the browser applies them:</p>
+
+<ul>
+  <li><strong>Relevance</strong> — does this declaration apply to this element at this moment? (Media queries, selector matching.)</li>
+  <li><strong>Origin and importance</strong> — where did the rule come from, and is it marked <code>!important</code>?</li>
+  <li><strong>Cascade layers</strong> — if <code>@layer</code> is involved, which layer takes priority?</li>
+  <li><strong>Specificity</strong> — how targeted is the selector?</li>
+  <li><strong>Order of appearance</strong> — when everything else ties, the last declaration wins.</li>
+</ul>
+
+<p>Relevance is a filter, not a contest. Once irrelevant declarations are removed, the remaining four steps are the actual competition. Most CSS education teaches steps four and five as if they were the whole game.</p>
+
+<h2 class="section-head">Origin comes first — and importance flips it</h2>
+
+<p class="section-intro">Before specificity gets a vote, the browser asks where a declaration came from. There are three origins: the browser's built-in stylesheet (user-agent), a stylesheet the reader has applied themselves (user), and the stylesheets you write (author). In normal priority, author beats user beats user-agent. This is why your CSS overrides browser defaults without any fuss.</p>
+
+<p><code>!important</code> doesn't just amplify a rule — it moves the rule into a separate, inverted origin stack. In the important layer, the order reverses: user-agent-important beats user-important beats author-important. A user stylesheet marked <code>!important</code> can override your author <code>!important</code>, by design, because user overrides exist to support accessibility needs that authors shouldn't be able to trample.</p>
+
+<pre class="language-css dark"><code>/* Author stylesheet — wins in normal origin */
+p { color: navy; }
+
+/* User stylesheet — loses to author in normal origin */
+p { color: black; }
+
+/* User stylesheet with !important — beats author !important */
+p { color: black !important; }
+
+/* Author stylesheet with !important — loses to user !important */
+p { color: navy !important; }
+</code></pre>
+
+<p>The practical consequence: when you reach for <code>!important</code> to force a style, you've entered a competition where user agents and user stylesheets outrank you. More immediately, you've created a rule that can only be overridden by another <code>!important</code> from an equal or higher origin — which is how specificity wars escalate into <code>!important</code> wars.</p>
+
+<section class="prop">
+  <h3>The three-column specificity score</h3>
+  <p>Specificity is calculated as three independent columns: IDs, then class selectors / attribute selectors / pseudo-classes, then element selectors / pseudo-elements. A higher number in the leftmost column always wins, regardless of the other columns. <code>0-1-0</code> (one class) beats <code>0-0-10</code> (ten element selectors) because the columns never carry over.</p>
+
+  <pre class="language-css dark"><code>/* 0-0-1 — one element selector */
+p { color: gray; }
+
+/* 0-1-0 — one class selector, beats the above */
+.intro { color: teal; }
+
+/* 1-0-0 — one ID selector, beats both */
+#hero { color: crimson; }
+
+/* Inline style: 1-0-0-0 — a fourth column, beats all of the above */
+/* &lt;p style="color: gold"&gt; */
+</code></pre>
+
+  <p>One edge worth knowing: <code>:is()</code>, <code>:has()</code>, and <code>:not()</code> take the specificity of their <em>most specific argument</em>. <code>:is(#hero, p)</code> scores <code>1-0-0</code> even when the element it matches is a plain <code>p</code>, because the ID argument sets the ceiling.</p>
+</section>
+
+<h2 class="section-head">Where cascade layers fit in</h2>
+
+<p class="section-intro">Cascade layers, introduced with <code>@layer</code>, sit between origin and specificity in the algorithm. They were designed to solve exactly the problem specificity wars create: a way to declare that an entire group of styles should defer to another group, regardless of how specific the selectors are.</p>
+
+<pre class="language-css dark"><code>@layer reset, base, components, utilities;
+
+@layer reset {
+  * { box-sizing: border-box; margin: 0; }
+}
+
+@layer components {
+  .card { padding: 1rem; background: white; }
+}
+
+@layer utilities {
+  .mt-4 { margin-top: 1rem; }
+}
+</code></pre>
+
+<p>Layers declared later in the list take priority over earlier ones — so <code>utilities</code> beats <code>components</code> beats <code>base</code> beats <code>reset</code>, regardless of specificity. A zero-specificity utility rule in <code>utilities</code> beats a high-specificity component rule in <code>components</code> because the layer comparison is resolved before specificity is consulted.</p>
+
+<section class="prop">
+  <h3>The unlayered rule always wins</h3>
+  <p>The most counterintuitive behavior in the cascade layers spec: any style <em>not</em> inside a <code>@layer</code> block beats any style that <em>is</em> inside one, regardless of specificity or order. Unlayered styles sit above all named layers in the implicit layer stack.</p>
+
+  <pre class="language-css dark"><code>@layer components {
+  /* 1-0-0 specificity — still loses */
+  #hero .card h2 { color: navy; }
+}
+
+/* 0-1-0 specificity — wins because it's unlayered */
+.headline { color: crimson; }
+</code></pre>
+
+  <p>This is intentional. Third-party layered libraries can never accidentally override your unlayered page styles, no matter how specific their selectors are. The catch: if you adopt <code>@layer</code> partway through a codebase, any legacy unlayered CSS will silently outrank everything you put in layers.</p>
+</section>
+
+<section class="prop">
+  <h3>Browser support for <code>@layer</code></h3>
+  <p>Cascade layers landed in Chrome, Edge, and Firefox in early 2022. The support cliff is hard: browsers that don't support <code>@layer</code> ignore the at-rule entirely, which means styles inside layers are dropped — not degraded, dropped. If you're using layers where older browser support matters, put critical fallback styles outside any layer.</p>
+</section>
+
+<h2 class="section-head">A sixth step on the horizon</h2>
+
+<p><code>@scope</code>, defined in CSS Cascading and Inheritance Level 6, adds scoping proximity as a new cascade step between layers and specificity. When two rules share the same origin, layer, and specificity, the one whose scope root is closer in the DOM tree wins. This lets you write component styles that naturally beat global styles for elements inside that component, without inflating specificity.</p>
+
+<pre class="language-css dark"><code>@scope (.card) {
+  /* Wins over a global `p` rule for paragraphs inside .card,
+     by proximity — not by specificity */
+  p { color: #333; line-height: 1.6; }
+}
+</code></pre>
+
+<p><code>@scope</code> sits at approximately 91% browser support as of late 2025, though it's still part of a living specification and behavior details may continue to settle. It's worth experimenting with on non-critical paths — scoping proximity is the most significant addition to the cascade algorithm in years.</p>
+
+<h2 class="section-head">The mental model to carry forward</h2>
+
+<p>The cascade is a decision tree that stops as soon as it finds a winner. Origin and importance are the first gate — the only one <code>!important</code> affects, by inverting the origin order rather than amplifying a rule's weight. Layers are the second gate, where unlayered styles sit above all named layers. Specificity is the third gate, where the three-column score is compared. Order of appearance is the fallback when everything else ties.</p>
+
+<p>Knowing this sequence changes how you debug. When a rule loses unexpectedly, the question isn't "is my selector specific enough?" — it's "at which step did it lose?" A rule with an ID selector that still loses probably lost at origin or layer, not at specificity. Adding more classes to the selector won't fix it, because the browser never reached the specificity comparison.</p>
+
+<p>The practical upshot for a design system or component library: put your library styles inside <code>@layer</code> and leave consumer overrides unlayered. Specificity becomes largely irrelevant within the library — layers handle the priority — and consumers get clean, predictable wins without writing a single <code>!important</code>.</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Specificity" rel="noopener noreferrer" target="_blank">Specificity - CSS - MDN Web Docs</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Handling_conflicts" rel="noopener noreferrer" target="_blank">Handling conflicts - Learn web development | MDN</a></li>
+    <li><a href="https://www.youtube.com/watch?v=WDsih3mqfws" rel="noopener noreferrer" target="_blank">Cascade, Inheritance, Specificity - Core CSS Mastery 6.1</a></li>
+    <li><a href="https://css-tricks.com/css-cascade-layers/" rel="noopener noreferrer" target="_blank">Cascade Layers Guide</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascade/Introduction" rel="noopener noreferrer" target="_blank">Introduction to the CSS cascade - MDN Web Docs</a></li>
+    <li><a href="https://www.smashingmagazine.com/2022/01/introduction-css-cascade-layers/" rel="noopener noreferrer" target="_blank">Getting Started With CSS Cascade Layers</a></li>
+    <li><a href="https://www.w3.org/TR/css-cascade-5/" rel="noopener noreferrer" target="_blank">CSS Cascading and Inheritance Level 5</a></li>
+    <li><a href="https://www.w3.org/TR/2021/WD-css-cascade-6-20211221/" rel="noopener noreferrer" target="_blank">CSS Cascading and Inheritance Level 6</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
