@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="Padding adds to width by default. Learn how box-sizing, margin collapsing, and percentage padding actually calculate — and how to control them." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>The Box Model Is Arithmetic — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 5 · Box Model</div>
+          <h1 class="headline">The Box Model Is Arithmetic</h1>
+          <p class="deck">Every layout problem has the same root: declared dimensions don't mean what you think. Here's how the four-layer calculation actually works.</p>
+        </header>
+
+        <section class="playground" data-playground data-display="block" aria-labelledby="playground-title">
+          <h2 class="playground-label" id="playground-title">Try it — change box-sizing and watch the box grow or stay put</h2>
+          <div class="editor-stage" data-stage style="display: block" aria-live="polite">
+            <div class="editor-item">1</div>
+            <div class="editor-item">2</div>
+            <div class="editor-item">3</div>
+          </div>
+          <div class="controls">
+            <div class="row-label" id="boxSizing-label">box-sizing</div>
+            <div class="pillset" data-group="boxSizing" data-prop="boxSizing" data-css="box-sizing" data-default="content-box" aria-labelledby="boxSizing-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="content-box">content-box</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="border-box">border-box</button>
+            </div>
+            <div class="row-label" id="padding-label">padding</div>
+            <div class="pillset" data-group="padding" data-prop="padding" data-css="padding" data-default="24px" aria-labelledby="padding-label">
+              <button class="pill" type="button" aria-pressed="false" data-value="0px">0px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="12px">12px</button>
+              <button class="pill active" type="button" aria-pressed="true" data-value="24px">24px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="40px">40px</button>
+            </div>
+            <div class="row-label" id="borderWidth-label">border-width</div>
+            <div class="pillset" data-group="borderWidth" data-prop="borderWidth" data-css="border-width" data-default="4px" aria-labelledby="borderWidth-label">
+              <button class="pill" type="button" aria-pressed="false" data-value="0px">0px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="2px">2px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="8px">8px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="16px">16px</button>
+            </div>
+          </div>
+          <pre class="live-output" aria-label="Generated CSS"><code data-output>.container {
+  display: block;
+  box-sizing: content-box;
+  padding: 24px;
+  border-width: 4px;
+}</code></pre>
+        </section>
+
+        <p class="lede">Set <code>width: 100%</code> on an element, add <code>padding: 1rem</code>, and the element overflows its container. The layout is not broken — the arithmetic is working exactly as CSS2 specified it. That specification, still the default today, adds padding and border <em>on top of</em> whatever width you declared. A 300 px box with 16 px of padding on each side becomes 332 px wide. The number you wrote means less than you thought.</p>
+
+<p>The CSS box model is a calculation rule, not a vocabulary list. Four layers wrap every element — content, padding, border, margin — and the order in which they are measured determines whether your declared dimensions mean what you intended. Getting that arithmetic into your hands is what this issue is for.</p>
+
+<h2 class="section-head">The four layers, measured</h2>
+
+<p class="section-intro">Every block-level element generates a rectangular box. Working outward from the centre: the content area (where text and child elements live), padding (transparent space between content and border), border (a drawn edge with colour, style, and width), and margin (transparent space outside the border that pushes other elements away).</p>
+
+<p>In the browser's default model, <code>box-sizing: content-box</code>, the <code>width</code> and <code>height</code> properties describe only the content area. Everything else is additive. Given this rule:</p>
+
+<pre class="language-css dark"><code>.card {
+  width: 300px;
+  padding: 20px;
+  border: 4px solid currentColor;
+}</code></pre>
+
+<p>The element occupies <strong>348 px</strong> of horizontal space: 300 (content) + 40 (padding left and right) + 8 (border left and right). Margin is not counted in the element's own footprint — it pushes neighbours away but is not part of the rendered edge. If that <code>.card</code> sits inside a 300 px container, it overflows by 48 px. The container did not shrink; the arithmetic added up correctly and the result exceeded the available space.</p>
+
+<section class="prop">
+  <h3>box-sizing</h3>
+  <p>The <code>box-sizing</code> property changes what the declared width and height measure. Its two meaningful values are <code>content-box</code> (the default) and <code>border-box</code>.</p>
+  <pre class="language-css dark"><code>/* The industry-standard reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}</code></pre>
+  <p>With <code>border-box</code>, padding and border are absorbed <em>into</em> the declared dimensions. That same 300 px card with 20 px padding and a 4 px border will have a content area of 252 px, but its total rendered width stays exactly 300 px. Margin is never absorbed — it remains outside the box in both models. Paul Irish popularised this universal reset around 2012; every current browser supports <code>border-box</code> unprefixed. The vendor-prefixed forms (<code>-webkit-box-sizing</code>, <code>-moz-box-sizing</code>) are historical artefacts no modern codebase needs.</p>
+</section>
+
+<h2 class="section-head">Margin collapsing</h2>
+
+<p class="section-intro">Margins between adjacent vertical elements do not add together — they collapse to the larger of the two values. This is not a bug. It is a deliberate rule from the CSS2 specification, designed to keep paragraph spacing consistent regardless of nesting. It is also one of the most reliably surprising things in CSS.</p>
+
+<p>Given two sibling paragraphs, the first with <code>margin-bottom: 24px</code> and the second with <code>margin-top: 16px</code>, the space between them is <strong>24 px</strong>, not 40 px. The smaller margin collapses into the larger. The same principle applies between a parent and its first or last child: if nothing separates the parent's top edge from the child's top edge — no border, no padding, no formatting context — the child's <code>margin-top</code> collapses with the parent's <code>margin-top</code> and escapes upward out of the parent.</p>
+
+<p>Two things make this particularly tricky. First, it is asymmetric: <strong>horizontal margins never collapse</strong>, only vertical ones in normal block flow. Second, collapsing does not happen inside a flex or grid formatting context. Adding <code>display: flex</code> to a container causes its children's margins to sum normally again — which can quietly change your spacing if you were relying on collapse to keep gaps consistent.</p>
+
+<pre class="language-css dark"><code>/* Collapsing — gap between siblings is 24px, not 40px */
+.sibling-a { margin-bottom: 24px; }
+.sibling-b { margin-top: 16px; }
+
+/* No collapsing — gap is 40px */
+.flex-parent { display: flex; flex-direction: column; }
+.flex-parent .sibling-a { margin-bottom: 24px; }
+.flex-parent .sibling-b { margin-top: 16px; }</code></pre>
+
+<p>To prevent parent-child margin collapse, the most reliable technique is adding a border or padding to the parent. Even <code>padding-top: 1px</code> creates the separation the browser needs to stop the child's margin from escaping. Establishing a new block formatting context — with <code>overflow: hidden</code>, <code>display: flow-root</code>, or a flex or grid container — also prevents collapse.</p>
+
+<section class="prop">
+  <h3>outline is not part of the box</h3>
+  <p>A common debugging mistake is confusing <code>outline</code> with <code>border</code>. They look similar in the browser, but <code>outline</code> is drawn outside the border edge and takes up no space in the layout. It does not affect the box model calculation — adding a thick outline does not shift surrounding elements. That makes it useful for debugging (it shows the box without disturbing the layout) and for focus indicators (the ring appears without causing reflow).</p>
+  <pre class="language-css dark"><code>/* Debug without affecting layout */
+* { outline: 2px solid tomato; }
+
+/* Focus ring — no reflow */
+.focused { outline: 3px solid royalblue; outline-offset: 2px; }</code></pre>
+</section>
+
+<h2 class="section-head">Percentage padding</h2>
+
+<p>Percentage values for padding are calculated against the element's <em>containing block width</em> — not its height, and not the axis the padding is on. <code>padding-top: 50%</code> is 50% of the container's width, not its height. This is the rule that makes the classic aspect-ratio padding hack work: a box with <code>padding-top: 56.25%</code> and no explicit height will always be 16:9 relative to its container width. The CSS <code>aspect-ratio</code> property has largely replaced this technique, but understanding why the hack worked explains something real about how the box model handles percentages.</p>
+
+<h2 class="section-head">Where the spec is heading</h2>
+
+<p class="section-intro">The four-layer model is not a closed topic. Two directions are worth watching: logical properties and intrinsic sizing keywords.</p>
+
+<p>Logical properties replace physical directions (top, right, bottom, left) with writing-mode-relative ones. Instead of <code>margin-top</code> and <code>margin-bottom</code>, you write <code>margin-block-start</code> and <code>margin-block-end</code>, or the shorthand <code>margin-block</code>. Instead of <code>margin-left</code> and <code>margin-right</code>, you write <code>margin-inline</code>. These properties adapt automatically to vertical writing modes and right-to-left scripts, which physical properties cannot do without explicit overrides. Browser support is good across current engines; if your audience includes older browsers, check the compatibility table before replacing physical shorthands wholesale.</p>
+
+<pre class="language-css dark"><code>/* Physical — does not adapt to writing mode */
+.card {
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Logical — adapts to writing mode and text direction */
+.card {
+  margin-block: 1.5rem;
+  padding-inline: 1rem;
+}</code></pre>
+
+<p>Intrinsic sizing keywords — <code>min-content</code>, <code>max-content</code>, <code>fit-content</code> — extend what you can set on <code>width</code> and <code>height</code>, letting the content itself determine dimensions rather than a fixed number. They are defined in the CSS Box Sizing Level 3 and Level 4 specifications. Support is uneven in older environments; treat them as progressive enhancement for now.</p>
+
+<p>The box model has been the ground under every layout technique CSS has ever produced — floats, positioning, flexbox, grid, all of it. Getting its arithmetic right is not a beginner step to move past. It is the thing that makes the rest legible.</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/box-sizing" rel="noopener noreferrer" target="_blank">box-sizing CSS property - MDN Web Docs - Mozilla</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Box_model" rel="noopener noreferrer" target="_blank">The box model - Learn web development | MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Box_model" rel="noopener noreferrer" target="_blank">CSS box model - MDN Web Docs</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Box_model/Margin_collapsing" rel="noopener noreferrer" target="_blank">Mastering margin collapsing - CSS - MDN Web Docs</a></li>
+    <li><a href="https://www.joshwcomeau.com/css/rules-of-margin-collapse/" rel="noopener noreferrer" target="_blank">The Rules of Margin Collapse</a></li>
+    <li><a href="https://css-tricks.com/good-ol-margin-collapsing/" rel="noopener noreferrer" target="_blank">Good ol&#x27; Margin Collapsing | CSS ...</a></li>
+    <li><a href="https://www.w3.org/TR/css-sizing-3/" rel="noopener noreferrer" target="_blank">CSS Box Sizing Module Level 3</a></li>
+    <li><a href="https://www.w3.org/TR/css-sizing-4/" rel="noopener noreferrer" target="_blank">CSS Box Sizing Module Level 4</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script type="module" src="/js/issue-playground.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
