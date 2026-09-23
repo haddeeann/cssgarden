@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="content-box adds padding and border to your declared width. border-box keeps the element fixed. Here's the math, the reset patterns, and when each one matters." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>Box-Sizing: Why the Reset Exists and How to Use It Right — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 6 · Box Model</div>
+          <h1 class="headline">Box-Sizing: Why the Reset Exists and How to Use It Right</h1>
+          <p class="deck">The default CSS box model adds padding and border on top of whatever width you declare. One property — and one reset pattern — fixes that permanently.</p>
+        </header>
+
+        <section class="playground" data-playground data-display="block" aria-labelledby="playground-title">
+          <h2 class="playground-label" id="playground-title">Try it — change box-sizing and watch the element&#x27;s rendered width</h2>
+          <div class="editor-stage" data-stage style="display: block" aria-live="polite">
+            <div class="editor-item">1</div>
+            <div class="editor-item">2</div>
+            <div class="editor-item">3</div>
+          </div>
+          <div class="controls">
+            <div class="row-label" id="boxSizing-label">box-sizing</div>
+            <div class="pillset" data-group="boxSizing" data-prop="boxSizing" data-css="box-sizing" data-default="content-box" aria-labelledby="boxSizing-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="content-box">content-box</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="border-box">border-box</button>
+            </div>
+            <div class="row-label" id="padding-label">padding</div>
+            <div class="pillset" data-group="padding" data-prop="padding" data-css="padding" data-default="20px" aria-labelledby="padding-label">
+              <button class="pill" type="button" aria-pressed="false" data-value="0px">0px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="10px">10px</button>
+              <button class="pill active" type="button" aria-pressed="true" data-value="20px">20px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="40px">40px</button>
+            </div>
+            <div class="row-label" id="borderWidth-label">border-width</div>
+            <div class="pillset" data-group="borderWidth" data-prop="borderWidth" data-css="border-width" data-default="5px" aria-labelledby="borderWidth-label">
+              <button class="pill" type="button" aria-pressed="false" data-value="0px">0px</button>
+              <button class="pill active" type="button" aria-pressed="true" data-value="5px">5px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="10px">10px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="20px">20px</button>
+            </div>
+          </div>
+          <pre class="live-output" aria-label="Generated CSS"><code data-output>.container {
+  display: block;
+  box-sizing: content-box;
+  padding: 20px;
+  border-width: 5px;
+}</code></pre>
+        </section>
+
+        <p class="lede">
+  Set a <code>div</code> to <code>width: 300px</code>, add
+  <code>padding: 20px</code> and a <code>border: 5px solid</code>, and the
+  element is now 350 pixels wide — not 300. That gap between intention and
+  result is the default CSS box model, and it has been causing layout bugs since
+  the first stylesheet was written.
+</p>
+
+<p>
+  The property that closes that gap is <code>box-sizing</code>. It has exactly
+  two meaningful values. One is the default, and almost no one wants it.
+  Understanding <em>why</em> — mathematically, not just by convention — is what
+  makes the standard reset feel inevitable rather than arbitrary.
+</p>
+
+<h2 class="section-head">What the browser is actually computing</h2>
+
+<p>
+  Every element is a stack of four nested regions: content, padding, border,
+  margin. The <code>box-sizing</code> property controls which of those regions
+  the <code>width</code> and <code>height</code> declarations measure. Margins
+  are never part of that measurement — not in either value, not in any browser,
+  not ever. That last point surprises even experienced developers, so it is
+  worth stating plainly before moving on.
+</p>
+
+<section class="prop">
+  <h3><code>box-sizing: content-box</code> — the default</h3>
+  <p>
+    The W3C specified <code>content-box</code> as the default because it maps
+    cleanly to the original box model: <code>width</code> describes the content
+    area, and everything else is added outside it. This was not a mistake or an
+    oversight — it was a deliberate choice to keep the content dimension
+    independent of its decoration.
+  </p>
+  <p>The math is additive:</p>
+  <pre class="language-css dark"><code>/* Declared */
+width: 300px;
+padding: 20px;
+border: 5px solid;
+
+/* Rendered width */
+300 + 20 + 20 + 5 + 5 = 350px</code></pre>
+  <p>
+    The content area is exactly 300 px. The element occupies 350 px of space.
+    Put two such elements side by side inside a 700 px container expecting them
+    to fit, and they won't — they overflow by 100 px.
+  </p>
+</section>
+
+<section class="prop">
+  <h3><code>box-sizing: border-box</code> — the intuitive one</h3>
+  <p>
+    With <code>border-box</code>, the declared <code>width</code> becomes the
+    outer edge of the border. Padding and border are compressed <em>inward</em>,
+    reducing the content area. The element never grows beyond what you wrote.
+  </p>
+  <pre class="language-css dark"><code>/* Declared */
+box-sizing: border-box;
+width: 300px;
+padding: 20px;
+border: 5px solid;
+
+/* Rendered width */
+300px — always
+
+/* Content area */
+300 - 20 - 20 - 5 - 5 = 250px</code></pre>
+  <p>
+    The element is 300 px wide. The content area shrinks to accommodate the
+    decoration. This is what most people mean when they write
+    <code>width: 300px</code>. It is also — interestingly — the box model that
+    old Internet Explorer used in quirks mode, which is why CSS-Tricks once
+    called <code>border-box</code> the "restoration of the quirky way." The
+    intuition predates the spec.
+  </p>
+  <p>
+    One thing <code>border-box</code> still cannot do: include the margin.
+    Margin lives entirely outside the border edge in both values, always. Add
+    <code>margin: 10px</code> to the element above and the occupied space
+    becomes 320 px, but the element's own box is still 300 px. This is the
+    single most common misconception about the property — that
+    <code>border-box</code> somehow accounts for "everything." It accounts for
+    padding and border. Margin is the gap between boxes, not a part of any box.
+  </p>
+</section>
+
+<h2 class="section-head">Three ways to apply it, and why they differ</h2>
+
+<p>
+  The property is not inherited by default. Setting it on a parent does nothing
+  for the children unless you explicitly make it cascade. That single fact
+  explains the entire history of how developers have applied the reset.
+</p>
+
+<section class="prop">
+  <h3>The universal reset — direct and blunt</h3>
+  <p>
+    Paul Irish's 2012 essay popularized this pattern, and it remains the most
+    common version in tutorials:
+  </p>
+  <pre class="language-css dark"><code>* {
+  box-sizing: border-box;
+}</code></pre>
+  <p>
+    The <code>*</code> selector matches every element directly, which is why it
+    works despite <code>box-sizing</code> not being inherited. Every element
+    gets its own explicit declaration. Simple, effective, and sufficient for
+    most small-to-medium projects.
+  </p>
+  <p>
+    The catch: because <code>*</code> applies directly to every element, a
+    third-party widget that sets <code>box-sizing: content-box</code> on its
+    root element will have that declaration immediately overridden on its
+    children by <code>*</code>. The widget cannot opt itself out. For projects
+    that embed third-party components, this matters.
+  </p>
+  <p>
+    The pseudo-element extension is also worth including. The
+    <code>*</code> selector does not automatically cover <code>::before</code>
+    and <code>::after</code> in all implementations, so the complete version is:
+  </p>
+  <pre class="language-css dark"><code>*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}</code></pre>
+</section>
+
+<section class="prop">
+  <h3>The inherit pattern — flexible and composable</h3>
+  <p>
+    A later refinement sets the value on <code>html</code> and then tells every
+    other element to inherit it:
+  </p>
+  <pre class="language-css dark"><code>html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}</code></pre>
+  <p>
+    This looks almost identical in everyday use, but the cascade behavior
+    differs in one important way. Because children now <em>inherit</em> rather
+    than receive a direct declaration, a third-party widget can set
+    <code>box-sizing: content-box</code> on its own root element and have that
+    value cascade correctly through all of its children — because
+    <code>inherit</code> picks up whatever the parent has, and the parent is now
+    <code>content-box</code>.
+  </p>
+  <pre class="language-css dark"><code>/* Third-party widget can now safely opt out */
+.widget {
+  box-sizing: content-box;
+  /* All .widget children will inherit content-box */
+}</code></pre>
+  <p>
+    For most personal projects and small applications, the difference is
+    academic. For component libraries, design systems, or any project that
+    embeds external UI code, the inherit pattern is the safer default.
+  </p>
+</section>
+
+<h2 class="section-head">Where it already applies without you asking</h2>
+
+<p>
+  One practical argument for the global reset is consistency: many browsers
+  already apply <code>border-box</code> to form controls —
+  <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>,
+  <code>&lt;button&gt;</code> — in their default user-agent stylesheets. Without
+  a reset, form elements and <code>div</code> elements follow different box
+  models by default. Setting <code>border-box</code> globally makes the page
+  consistent with what browsers already do for the elements that handle user
+  input.
+</p>
+
+<p>
+  A note on images: applying <code>border-box</code> to <code>&lt;img&gt;</code>
+  elements means that adding a border to an image will scale the image down to
+  fit inside the declared width. Usually fine — but if you need pixel-perfect
+  dimensions on the image content itself, keep it in mind.
+</p>
+
+<p>
+  One value you may encounter in older posts is <code>padding-box</code> — a
+  third option that would have included padding but not border in the width
+  calculation. It was removed from the CSS Box Sizing Level 3 specification
+  before it shipped in any stable browser. It does not exist in any current
+  implementation. If a tutorial recommends it, the tutorial is out of date.
+</p>
+
+<h2 class="section-head">The mental model, restated simply</h2>
+
+<p>
+  <code>box-sizing</code> answers one question: when you write
+  <code>width: 400px</code>, what is 400 px measuring?
+</p>
+
+<ul>
+  <li>
+    <strong><code>content-box</code>:</strong> 400 px is the content area.
+    Padding and border are added outside it. The element grows.
+  </li>
+  <li>
+    <strong><code>border-box</code>:</strong> 400 px is the outer edge of the
+    border. Padding and border are subtracted from the inside. The element
+    stays fixed.
+  </li>
+  <li>
+    <strong>Neither value:</strong> Margin is not included. Margin is the space
+    between elements, not a dimension of any element's box.
+  </li>
+</ul>
+
+<p>
+  The reset is not a workaround for a browser bug. It is a choice to use the
+  model that matches how most people think about width — as the space the
+  element occupies on screen, not the space available to its text. Once that
+  model is in place, percentage widths with pixel padding work, grid columns
+  accept borders without overflowing, and the arithmetic you do on paper matches
+  the arithmetic the browser does. That is the whole argument. Everything else
+  is implementation detail.
+</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/box-sizing" rel="noopener noreferrer" target="_blank">box-sizing CSS property - MDN Web Docs</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Box_model" rel="noopener noreferrer" target="_blank">The box model - Learn web development | MDN</a></li>
+    <li><a href="https://paulirish.com/2012/box-sizing-border-box-ftw/" rel="noopener noreferrer" target="_blank">{ box-sizing: border-box } FTW</a></li>
+    <li><a href="https://dev.to/konnorrogers/revisiting-box-sizing-best-practices-3del" rel="noopener noreferrer" target="_blank">Revisiting box-sizing best practices</a></li>
+    <li><a href="https://css-tricks.com/box-sizing/" rel="noopener noreferrer" target="_blank">Box Sizing</a></li>
+    <li><a href="https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/" rel="noopener noreferrer" target="_blank">Inheriting box-sizing Probably Slightly Better Best-Practice</a></li>
+    <li><a href="https://stackoverflow.com/questions/69142205/can-this-code-section-before-after-boxsizing-border-box-work" rel="noopener noreferrer" target="_blank">before, ::after { boxsizing: border-box }&quot; work?</a></li>
+    <li><a href="https://www.w3.org/TR/css-sizing-3/" rel="noopener noreferrer" target="_blank">CSS Box Sizing Module Level 3</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script type="module" src="/js/issue-playground.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
