@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="The display property sets two things at once. Understanding outer and inner types explains every inline-block quirk — the gap, the baseline drop, all of it." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>Block, Inline, Inline-Block: The Display Model You Actually Need — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 7 · Box Model</div>
+          <h1 class="headline">Block, Inline, Inline-Block: The Display Model You Actually Need</h1>
+          <p class="deck">The display property doesn't style a box — it enrolls one in a formatting context. That distinction explains the four-pixel gap, the baseline drop, and every other quirk the comparison tables can't.</p>
+        </header>
+
+        <section class="playground" data-playground data-display="block" aria-labelledby="playground-title">
+          <h2 class="playground-label" id="playground-title">Try it — switch display type and vertical-align, watch items respond</h2>
+          <div class="editor-stage" data-stage style="display: block" aria-live="polite">
+            <div class="editor-item">1</div>
+            <div class="editor-item">2</div>
+            <div class="editor-item">3</div>
+          </div>
+          <div class="controls">
+            <div class="row-label" id="display-label">display (on items)</div>
+            <div class="pillset" data-group="display" data-prop="display" data-css="display" data-default="inline-block" aria-labelledby="display-label">
+              <button class="pill" type="button" aria-pressed="false" data-value="inline">inline</button>
+              <button class="pill active" type="button" aria-pressed="true" data-value="inline-block">inline-block</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="block">block</button>
+            </div>
+            <div class="row-label" id="verticalAlign-label">vertical-align (on items)</div>
+            <div class="pillset" data-group="verticalAlign" data-prop="verticalAlign" data-css="vertical-align" data-default="baseline" aria-labelledby="verticalAlign-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="baseline">baseline</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="middle">middle</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="top">top</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="bottom">bottom</button>
+            </div>
+            <div class="row-label" id="fontSize-label">font-size on container (gap fix)</div>
+            <div class="pillset" data-group="fontSize" data-prop="fontSize" data-css="font-size" data-default="1rem" aria-labelledby="fontSize-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="1rem">1rem</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="0">0</button>
+            </div>
+          </div>
+          <pre class="live-output" aria-label="Generated CSS"><code data-output>.container {
+  display: block;
+  display: inline-block;
+  vertical-align: baseline;
+  font-size: 1rem;
+}</code></pre>
+        </section>
+
+        <p class="lede">
+  Every time a developer writes <code>display: inline-block</code> and then spends twenty minutes hunting a mysterious four-pixel gap, they are paying the tax for not knowing what <code>display</code> actually declares. It does not style a box. It enrolls a box in a formatting context — and that single distinction explains every quirk that comparison tables leave dangling.
+</p>
+
+<h2 class="section-head">Two types, one property</h2>
+
+<p class="section-intro">
+  The <code>display</code> property sets two things at once. The <strong>outer type</strong> decides how a box participates in its parent's layout. The <strong>inner type</strong> decides how that box lays out its own children. The classic single-value keywords are shorthands for both.
+</p>
+
+<p>
+  The CSS Display Module Level 3 spec makes this explicit with a two-value syntax: <code>block</code> is shorthand for <code>block flow</code>, and <code>inline-block</code> is shorthand for <code>inline flow-root</code>. Those longer forms are not new features — they are the spec finally saying out loud what the single-value keywords have always meant. Browser support for the two-value syntax is solid in modern engines, but the single-value keywords remain the safe production choice.
+</p>
+
+<p>
+  Reading <code>inline flow-root</code> is immediately clearer than reading <code>inline-block</code>: the outer type is <em>inline</em>, the inner type is <em>flow-root</em>, meaning the box establishes a new block formatting context (BFC) inside itself. That is not a hybrid. It is an inline box on the outside and a self-contained block world on the inside. Every <code>inline-block</code> quirk you have ever encountered lives in that gap between outside and inside.
+</p>
+
+<section class="prop">
+  <h3>Outer type: block</h3>
+  <p>
+    A box with an outer type of <code>block</code> participates in a <em>block formatting context</em>. It stretches to fill its containing block's inline size, breaks onto its own line before and after, and treats <code>margin: auto</code> on the inline axis as a genuine centering instruction. Width, height, and all four margin values are fully respected.
+  </p>
+  <pre class="language-css dark"><code>.card {
+  display: block;   /* outer: block, inner: flow */
+  width: 40ch;
+  margin-inline: auto; /* works: block layout resolves auto margins */
+}</code></pre>
+</section>
+
+<section class="prop">
+  <h3>Outer type: inline</h3>
+  <p>
+    A box with an outer type of <code>inline</code> participates in an <em>inline formatting context</em>. It sits on the line alongside text and other inline boxes. It does not accept <code>width</code> or <code>height</code> — the inline formatting context has no mechanism to resolve them. Horizontal margins and padding work. Vertical padding <em>renders</em> (the background color extends above and below), but it does not push adjacent lines apart, because inline boxes do not contribute to block-axis layout. This surprises every developer who tries to pad a link into a button shape and watches it bleed through the lines above and below.
+  </p>
+  <pre class="language-css dark"><code>a.tag {
+  display: inline;
+  padding-block: 0.5em; /* visible, but does not move surrounding lines */
+  background: oklch(90% 0.1 150);
+}</code></pre>
+  <p>
+    One quiet exception: <em>replaced elements</em> — <code>&lt;img&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;video&gt;</code> — accept <code>width</code> and <code>height</code> even at <code>display: inline</code>. The spec grants replaced elements this ability regardless of display type, because their intrinsic dimensions come from an external resource rather than from flow layout. This is why you can resize an image with <code>width: 100%</code> without changing its display value. It is not an inconsistency; it is a separate rule that most introductory articles forget to mention.
+  </p>
+</section>
+
+<section class="prop">
+  <h3>Outer type: inline — inner type: flow-root (a.k.a. inline-block)</h3>
+  <p>
+    This is where the model earns its keep. The outer type is still <code>inline</code> — the box sits on a line, respects whitespace, aligns to a baseline. But the inner type is <code>flow-root</code>, which means the box establishes a new BFC for its children. Inside that boundary, block layout rules apply: <code>width</code> and <code>height</code> are respected, the box shrink-wraps its content if no explicit size is set, and floated children are contained rather than escaping into the parent.
+  </p>
+  <pre class="language-css dark"><code>.badge {
+  display: inline-block; /* inline flow-root */
+  padding: 0.25em 0.75em;
+  width: 8ch;            /* works: inner BFC resolves this */
+  vertical-align: middle;
+}</code></pre>
+</section>
+
+<h2 class="section-head">The whitespace gap, explained at the root</h2>
+
+<p class="section-intro">
+  Place two <code>inline-block</code> elements next to each other in HTML source with a newline between the closing and opening tags, and a gap appears. It is not a margin, not a border, and not a browser bug. It is a space character.
+</p>
+
+<p>
+  The inline formatting context treats HTML source whitespace — spaces, tabs, newlines between tags — as text content. It collapses runs of whitespace into a single space glyph and renders it. That glyph has a width determined by the current font, typically around <code>0.25em</code>. Every workaround for the gap is a way to either eliminate that space character or make it invisible:
+</p>
+
+<ul>
+  <li>Remove the whitespace between closing and opening tags in the HTML source (works, but is fragile and unreadable).</li>
+  <li>Set <code>font-size: 0</code> on the parent, then restore <code>font-size</code> on the children (the space glyph renders at zero width).</li>
+  <li>Use a negative margin equal to the gap width (brittle across fonts and sizes).</li>
+</ul>
+
+<p>
+  The durable fix is to stop using <code>inline-block</code> for multi-column layout and reach for Flexbox or Grid instead — both establish inner formatting contexts that do not collapse whitespace between children. That said, <code>inline-block</code> remains the right tool for inline-sized containers that need explicit dimensions, like icon badges or code labels sitting inside a paragraph.
+</p>
+
+<h2 class="section-head">The baseline trap</h2>
+
+<p>
+  Because <code>inline-block</code> has an outer type of inline, it aligns to the line's baseline by default. For a box that contains text, the baseline is the text baseline — sensible. For a box with no text content, the spec defines the baseline as the bottom margin edge of the box. That means an empty <code>inline-block</code> sits with its bottom edge on the baseline, dropping it well below any text siblings on the same line.
+</p>
+
+<pre class="language-css dark"><code>/* Empty inline-block sinks to baseline — often not what you want */
+.icon-box {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/* Fix: align to middle or top instead */
+.icon-box {
+  display: inline-block;
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: middle;
+}</code></pre>
+
+<p>
+  Every browser implements the same spec rule here. The fix is always an explicit <code>vertical-align</code> value. <code>middle</code> is the most common choice for icon-adjacent text; <code>top</code> works when you want the box flush with the tallest element on the line.
+</p>
+
+<h2 class="section-head">A short field guide</h2>
+
+<p class="section-intro">
+  Three values, three situations. The model makes the choice obvious once you know what you are actually choosing.
+</p>
+
+<ul>
+  <li>
+    <strong>Use <code>block</code></strong> when the element should occupy a full row, respond to explicit widths and heights, and support <code>margin: auto</code> centering. Structural containers — sections, cards, headings, paragraphs — belong here.
+  </li>
+  <li>
+    <strong>Use <code>inline</code></strong> when the element should flow with text and you do not need to control its block-axis size. Emphasis spans, links inside prose, abbreviations — these are inline by nature and should stay that way.
+  </li>
+  <li>
+    <strong>Use <code>inline-block</code></strong> when the element must sit inline with text <em>and</em> accept explicit dimensions or contain block-level children. Badges, code labels, and icon wrappers are the canonical cases. Account for the whitespace gap and set <code>vertical-align</code> deliberately.
+  </li>
+</ul>
+
+<p>
+  The comparison table — starts new line? accepts width? accepts margin? — is a useful cheat sheet once you have the model. Without the model, it is just a list of symptoms with no way to reason about edge cases. The edge cases are where the time goes.
+</p>
+
+<p>
+  Flexbox and Grid each introduce their own inner display types — <code>flex</code> and <code>grid</code> — which replace the inline formatting context inside the container entirely. The outer type still applies: a <code>display: flex</code> container is a block-level box on the outside. That is a thread for another issue.
+</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/display" rel="noopener noreferrer" target="_blank">display CSS property - MDN Web Docs - Mozilla</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Display/Block_and_inline_layout" rel="noopener noreferrer" target="_blank">Block and inline layout in normal flow - CSS - MDN Web Docs</a></li>
+    <li><a href="https://www.samanthaming.com/pictorials/css-inline-vs-inlineblock-vs-block/" rel="noopener noreferrer" target="_blank">CSS Inline vs Inline-Block vs Block | SamanthaMing.com</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Display/Block_formatting_context" rel="noopener noreferrer" target="_blank">Block formatting context - CSS - MDN Web Docs - Mozilla</a></li>
+    <li><a href="https://www.w3.org/TR/CSS2/visuren.html" rel="noopener noreferrer" target="_blank">9. Visual formatting model</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Display/Formatting_contexts" rel="noopener noreferrer" target="_blank">Introduction to formatting contexts - CSS - MDN Web Docs</a></li>
+    <li><a href="https://css-tricks.com/fighting-the-space-between-inline-block-elements/" rel="noopener noreferrer" target="_blank">Fighting the Space Between Inline Block Elements</a></li>
+    <li><a href="https://stackoverflow.com/questions/16935922/how-to-stop-inline-block-whitespace-being-rendered-in-the-browser" rel="noopener noreferrer" target="_blank">how to stop inline-block whitespace being rendered in the ...</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script type="module" src="/js/issue-playground.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
