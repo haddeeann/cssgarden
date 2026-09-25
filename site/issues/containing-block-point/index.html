@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="CSS positioning makes sense once you understand the containing block. A clear map of relative, absolute, fixed, and sticky — plus the bugs they cause." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>The Containing Block Is the Point — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 8 · CSS Positioning</div>
+          <h1 class="headline">The Containing Block Is the Point</h1>
+          <p class="deck">Every positioned element measures itself against a rectangle you never drew. Understand the containing block and the four position values — and their bugs — click into place.</p>
+        </header>
+
+<p class="lede">Every positioned element in CSS measures itself against a rectangle you never drew. That rectangle — the <em>containing block</em> — is the real subject of CSS positioning. The four keyword values (<code>relative</code>, <code>absolute</code>, <code>fixed</code>, <code>sticky</code>) are just four different answers to one question: which box is the containing block, and what are its edges?</p>
+
+<p>Most positioning tutorials introduce the four values as a flat list and leave the containing block as a footnote. That ordering is backwards. Once you understand the containing block, each value clicks into place on its own — and the bugs that have been confusing you for years suddenly have obvious explanations.</p>
+
+<h2 class="section-head">The invisible rectangle everything measures from</h2>
+
+<p>A "positioned element" is any element whose <code>position</code> is anything other than <code>static</code>, the default. When you write <code>top: 20px</code> or <code>left: 50%</code>, those values are not measured from the edge of the screen or the edge of the parent. They are measured from the edges of the containing block.</p>
+
+<p>For <code>position: static</code> elements, there is no containing block in the positioning sense — the normal flow handles placement. For every other value, the browser locates a specific rectangle, and <em>which</em> rectangle it picks depends entirely on the <code>position</code> value you chose.</p>
+
+<p>The complete map, in one place:</p>
+
+<ul>
+  <li><strong>relative</strong> — the element's own box in the normal flow. Offsets nudge it visually, but it still occupies its original space.</li>
+  <li><strong>absolute</strong> — the padding box of the nearest ancestor whose <code>position</code> is anything other than <code>static</code>. If no such ancestor exists, it falls back to the initial containing block, which is the viewport.</li>
+  <li><strong>fixed</strong> — the initial containing block (the viewport), unless an ancestor has a CSS <code>transform</code>, <code>filter</code>, or <code>will-change: transform</code> applied, in which case that ancestor becomes the containing block instead.</li>
+  <li><strong>sticky</strong> — the element's scroll container: the nearest ancestor that actually scrolls.</li>
+</ul>
+
+<p>That last "unless" is where the bugs live.</p>
+
+<h2 class="section-head">What each value actually does</h2>
+
+<section class="prop">
+  <h3>position: relative</h3>
+  <p>The element stays in the normal flow. Its original space is preserved; sibling elements do not collapse into the gap. The <code>top</code>, <code>right</code>, <code>bottom</code>, and <code>left</code> properties shift the painted position relative to where it would have been.</p>
+  <pre class="language-css dark"><code>.nudged {
+  position: relative;
+  top: 8px;
+  left: 8px;
+}</code></pre>
+  <p><code>position: relative</code> does two other things at the same time. It establishes a containing block for any absolutely-positioned descendants inside it. And if you also set <code>z-index</code> to anything other than <code>auto</code>, it creates a new stacking context — a quarantine zone for <code>z-index</code> values, covered below.</p>
+</section>
+
+<section class="prop">
+  <h3>position: absolute</h3>
+  <p>The element is removed from the normal flow entirely. Siblings close the gap as if it were never there. The element then positions itself against the padding box — not the border box, the <em>padding</em> box — of its nearest non-static ancestor.</p>
+  <pre class="language-css dark"><code>.parent {
+  position: relative; /* establishes the containing block */
+}
+
+.child {
+  position: absolute;
+  top: 0;
+  right: 0;
+}</code></pre>
+  <p>The most common absolute-positioning bug: forgetting to add <code>position: relative</code> (or any non-static value) to the intended parent. Without it, the browser walks up the DOM looking for a positioned ancestor and may end up measuring from the viewport — or from a distant grandparent you didn't intend.</p>
+</section>
+
+<section class="prop">
+  <h3>position: fixed</h3>
+  <p>Fixed positioning is absolute positioning against the viewport. The element is removed from the flow, scrolls with nothing, and stays locked to the same screen position no matter how far the user scrolls. It's the right tool for persistent navigation bars and overlays.</p>
+  <pre class="language-css dark"><code>.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}</code></pre>
+  <p>The failure mode is precise and consistent across every modern browser: if any ancestor of a fixed element has a CSS <code>transform</code>, <code>filter</code>, or <code>will-change: transform</code> applied, that ancestor becomes the containing block instead of the viewport. The element is no longer fixed to the screen — it is fixed to that transformed box. This is correct spec behavior, not a browser bug. The practical fix is to move fixed elements to the <code>&lt;body&gt;</code> level, outside any transformed ancestors.</p>
+</section>
+
+<section class="prop">
+  <h3>position: sticky</h3>
+  <p>Sticky is the hybrid. The element behaves like a relatively positioned element until it reaches a threshold within its scroll container, then it sticks in place like a fixed element — but only within the bounds of its parent. When the parent scrolls out of view, the sticky element goes with it.</p>
+  <pre class="language-css dark"><code>.section-label {
+  position: sticky;
+  top: 16px; /* distance from the scroll container's edge where sticking begins */
+}</code></pre>
+  <p>Full support across evergreen browsers landed with Safari 16 in late 2022. The value is safe to use without a fallback for most audiences today.</p>
+</section>
+
+<h2 class="section-head">Two bugs that make sense now</h2>
+
+<p>Armed with the containing block model, two of the most-reported CSS positioning bugs become immediately readable.</p>
+
+<section class="prop">
+  <h3>Sticky stops sticking: the overflow trap</h3>
+  <p>A sticky element can only stick within its scroll container — the nearest ancestor that actually scrolls. When you set <code>overflow: hidden</code> on an ancestor, you silently promote that ancestor into a scroll container (one that never shows its scrollbar). The sticky element is now confined to a container that never scrolls, so it never reaches its threshold, and it never sticks.</p>
+  <pre class="language-css dark"><code>/* Kills sticky on any descendant */
+.wrapper {
+  overflow: hidden;
+}
+
+/* Clips visually without creating a scroll container */
+.wrapper {
+  overflow-x: clip;
+}</code></pre>
+  <p><code>overflow: clip</code> is the correct replacement when you want to hide overflowing content without accidentally creating a scroll container. It has full support across evergreen browsers and does not affect sticky descendants. <code>overflow: hidden</code> on a <code>&lt;body&gt;</code> element is the single most common cause of "my sticky header stopped working" reports.</p>
+</section>
+
+<section class="prop">
+  <h3>z-index stops working: stacking contexts</h3>
+  <p>A stacking context is a self-contained layer. Elements inside one stacking context cannot paint above elements in a sibling stacking context, regardless of their <code>z-index</code> value. The trigger: any positioned element (<code>relative</code>, <code>absolute</code>, <code>fixed</code>, or <code>sticky</code>) with a <code>z-index</code> value other than <code>auto</code> creates a new stacking context.</p>
+  <pre class="language-css dark"><code>.card {
+  position: relative;
+  z-index: 1; /* creates a stacking context */
+}
+
+.modal {
+  position: fixed;
+  z-index: 9999; /* only wins within its own stacking context */
+}</code></pre>
+  <p>If <code>.modal</code> is a descendant of <code>.card</code>, its <code>z-index: 9999</code> is evaluated only within <code>.card</code>'s context. It cannot paint above a sibling of <code>.card</code> that has a higher <code>z-index</code>, no matter how large a number you write. The fix is structural: move the modal element to the top of the DOM, outside any stacking contexts you don't control — or use the <code>popover</code> attribute, which handles this automatically.</p>
+</section>
+
+<section class="prop">
+  <h3>Sticky on table elements</h3>
+  <p>One edge case worth knowing before you hit it: <code>position: sticky</code> does not work on elements with a <code>display: table-*</code> computed value, which includes <code>&lt;thead&gt;</code> and <code>&lt;tr&gt;</code>. Applying sticky to a <code>&lt;thead&gt;</code> has no effect. The working pattern is to apply it directly to the <code>&lt;th&gt;</code> or <code>&lt;td&gt;</code> cells inside the header row.</p>
+  <pre class="language-css dark"><code>/* Does not work */
+thead {
+  position: sticky;
+  top: 0;
+}
+
+/* Works */
+thead th {
+  position: sticky;
+  top: 0;
+}</code></pre>
+</section>
+
+<h2 class="section-head">The mental model to keep</h2>
+
+<p>CSS positioning is not about moving elements around the screen. It is about declaring which rectangle an element measures itself against, then removing it from — or keeping it in — the normal flow. Every positioning decision is a containing block decision first.</p>
+
+<p>When something lands in the wrong place, the question is not "why isn't my <code>top</code> working?" The question is "which box does the browser think is the containing block right now?" Walk up the DOM: look for the first non-static ancestor for absolute elements, look for transforms for fixed elements, look for overflow properties for sticky elements. The answer is almost always in that walk.</p>
+
+<p>The four values are a short vocabulary. The containing block is the grammar. Learn the grammar, and the vocabulary takes care of itself.</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position" rel="noopener noreferrer" target="_blank">position CSS property - MDN Web Docs - Mozilla</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Positioning" rel="noopener noreferrer" target="_blank">Positioning - Learn web development | MDN</a></li>
+    <li><a href="https://help.webflow.com/hc/en-us/articles/33961228002963-CSS-position-properties" rel="noopener noreferrer" target="_blank">CSS position properties</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Display/Containing_block" rel="noopener noreferrer" target="_blank">Layout and the containing block - CSS - MDN Web Docs</a></li>
+    <li><a href="https://stackoverflow.com/questions/43909940/why-does-overflowhidden-prevent-positionsticky-from-working" rel="noopener noreferrer" target="_blank">css - Why does `overflow:hidden` prevent `position:sticky ...</a></li>
+    <li><a href="https://cssdna.com/blog/css-position-sticky-not-working/" rel="noopener noreferrer" target="_blank">CSS position: sticky Not Working? The Five Causes, Ranked</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Positioned_layout/Stacking_context" rel="noopener noreferrer" target="_blank">Stacking context - CSS - MDN Web Docs</a></li>
+    <li><a href="https://www.greatfrontend.com/questions/quiz/describe-z-index-and-how-stacking-context-is-formed" rel="noopener noreferrer" target="_blank">Describe `z-index` and how stacking context is formed.</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
