@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="px, rem, em, %, vw, vh — each one names a different anchor. Know which anchor is in play and your layout stops drifting." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>Relative to What? A Practical Guide to CSS Length Units — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 9 · CSS Units</div>
+          <h1 class="headline">Relative to What? A Practical Guide to CSS Length Units</h1>
+          <p class="deck">Every CSS length is an answer to one question: relative to what? Pick the wrong anchor and your type snowballs, your hero bleeds off the screen, and your layout drifts. Pick the right one and the whole system snaps into place.</p>
+        </header>
+
+<p class="lede">Every CSS length is an answer to one question: <em>relative to what?</em> Get that question wrong and your layout drifts, your type snowballs in nested components, and your full-screen hero bleeds off the bottom of every iPhone. Get it right and the whole system snaps into place.</p>
+
+<p>Six units carry most of the work — <code>px</code>, <code>rem</code>, <code>em</code>, <code>%</code>, <code>vw</code>, and <code>vh</code> — and each one names a different anchor point. The confusion is rarely about memorising definitions. It is about knowing which anchor is in play, and whether that anchor can shift underneath you.</p>
+
+<h2 class="section-head">Fixed ground: what <code>px</code> actually means</h2>
+
+<p class="section-intro"><code>px</code> is the only unit on this list that answers "relative to what?" with "nothing." It is an absolute unit, pinned to a physical reference point — one ninety-sixth of a CSS inch, then multiplied by the device pixel ratio on high-density screens. It does not move when the viewport changes. It does not move when a user raises their browser's default font size in preferences.</p>
+
+<p>That last point is the accessibility trap. Browsers ship with a default font size — typically 16px — that users can raise to 20px or 24px if they need larger text. When you set <code>font-size: 16px</code>, you override that preference entirely. The user asked for bigger type; you said no. WCAG success criterion 1.4.4 (Resize Text) exists precisely because of this pattern. <code>px</code> is fine for borders, shadows, and fine-grained detail. For font sizes, it locks out the people who need flexibility most.</p>
+
+<section class="prop">
+  <h3><code>px</code> — absolute, device-anchored</h3>
+  <pre class="language-css dark"><code>/* Appropriate: fine detail that should not scale */
+.card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+
+/* Risky: ignores user font preferences */
+.card-title {
+  font-size: 20px; /* a user who set 20px as their default gets no benefit */
+}</code></pre>
+</section>
+
+<h2 class="section-head">The compounding trap: <code>em</code> versus <code>rem</code></h2>
+
+<p class="section-intro"><code>rem</code> stands for "root em." It resolves against the font size of the <code>&lt;html&gt;</code> element — one fixed anchor for the whole document. <code>em</code>, by contrast, resolves against the font size of the <em>current element</em>, which may itself be inherited or already expressed in <code>em</code>. That difference is everything.</p>
+
+<p>Imagine a card component where the base font size is <code>1rem</code> (16px). You style the nested list inside it with <code>font-size: 0.9em</code> — sensible enough. That list contains another list, also <code>0.9em</code>. The second level is now <code>0.9 × 0.9 = 0.81rem</code>, or about 13px. Add a third level and you are at 11.7px. The type has not scaled gracefully; it has quietly collapsed. This is the compounding problem, and it is the single most common source of mysterious type drift in component-heavy codebases.</p>
+
+<section class="prop">
+  <h3><code>rem</code> — always anchored to the root</h3>
+  <pre class="language-css dark"><code>/* Safe: no matter how deeply nested, 1rem is always 16px
+   (or whatever the user's root preference is) */
+h2    { font-size: 1.5rem;   }
+p     { font-size: 1rem;     }
+small { font-size: 0.875rem; }</code></pre>
+</section>
+
+<section class="prop">
+  <h3><code>em</code> — anchored to the current element's font size</h3>
+  <pre class="language-css dark"><code>/* Dangerous for font-size in nested contexts */
+.list .list { /* 0.9 × 0.9 = 0.81em of root — and shrinking */ }
+
+/* But exactly right for spacing that should scale with local type */
+.card {
+  font-size: 1rem;   /* set once in rem */
+  padding: 1.25em;   /* scales with the card's own font size */
+  gap: 0.75em;
+}</code></pre>
+</section>
+
+<p>The practical rule: use <code>rem</code> for font sizes, <code>em</code> for padding, margin, and gap. Spacing in <code>em</code> scales proportionally with the component's type size — shrink the font and the padding follows. That is the behaviour you want. Set <em>font sizes</em> in <code>em</code> inside nested components, though, and the cascade multiplies values until you lose control. One subtlety worth noting: when <code>em</code> appears on non-font properties such as <code>padding</code>, it resolves against the element's <em>own</em> computed font size, not the parent's. This is usually what you want, but it differs from what <code>em</code> does on <code>font-size</code> itself, where it inherits from the parent before resolving.</p>
+
+<h2 class="section-head">Percentages: the anchor changes with the property</h2>
+
+<p class="section-intro">MDN puts this plainly: percentages are "always relative to some other value." What it does not say loudly enough is that <em>which</em> value depends entirely on the property being set — and the answer is sometimes surprising.</p>
+
+<p><code>width: 50%</code> is relative to the parent element's width. Intuitive. <code>height: 50%</code> is relative to the parent element's height — but only if the parent has an explicit height set; otherwise it collapses to zero. Less intuitive. Here is the genuine gotcha: <code>margin-top: 10%</code> is relative to the parent element's <em>width</em>, not its height. The same is true of <code>padding-top</code> and <code>padding-bottom</code>. This is not a bug; it is how the spec defines percentage margins and padding, and it is the mechanism behind the old aspect-ratio-box trick (<code>padding-top: 56.25%</code> for a 16:9 container). Reach for <code>margin-top: 10%</code> expecting ten percent of the container's height, and you will be confused by what you get.</p>
+
+<section class="prop">
+  <h3><code>%</code> — relative to a property-specific ancestor value</h3>
+  <pre class="language-css dark"><code>.layout {
+  width: 80%;       /* 80% of parent's width — predictable */
+  height: 50%;      /* 50% of parent's height — only works if parent has explicit height */
+  margin-top: 5%;   /* 5% of parent's WIDTH, not height */
+  padding-top: 5%;  /* same: parent's width */
+}</code></pre>
+</section>
+
+<p>For layout proportions — column widths, image sizes, container constraints — <code>%</code> is the right tool. Keep the "relative to what?" question close at hand, because the answer is not always the axis you expect.</p>
+
+<h2 class="section-head">Viewport units and the mobile problem</h2>
+
+<p class="section-intro"><code>vw</code> and <code>vh</code> are each one percent of the viewport's width and height. They sound perfect for full-bleed layouts. On desktop they mostly are. On mobile, <code>vh</code> has a well-documented trap that catches nearly every developer who reaches for <code>height: 100vh</code> on a hero section.</p>
+
+<p>Mobile browsers — Safari on iOS being the most prominent — include the browser chrome (address bar and toolbar) in the initial viewport height calculation. When the user scrolls and the toolbar retracts, the viewport grows, but elements already sized to <code>100vh</code> were measured against the smaller value. A <code>100vh</code> hero is slightly taller than the visible screen on first load, producing an overflow that looks like a layout bug.</p>
+
+<p>The CSS Working Group addressed this with three new units, now supported in nearly all modern browsers: <code>svh</code> (small viewport height — the viewport with browser UI fully visible, the smallest it will ever be), <code>lvh</code> (large viewport height — UI hidden, the largest it can be), and <code>dvh</code> (dynamic viewport height — updates in real time as the UI shows and hides). For a hero that should fill the visible screen on load, <code>svh</code> is the safe choice. For a sticky element that should fill the screen after scrolling, <code>dvh</code> is closer to correct, though it can cause reflow jank as the toolbar animates. Firefox on iOS and most in-app browsers (Instagram, Facebook) still do not handle <code>svh</code> and <code>lvh</code> correctly, so a <code>vh</code> fallback before the new unit remains good practice.</p>
+
+<section class="prop">
+  <h3><code>vw</code> / <code>vh</code> — viewport-relative, with caveats</h3>
+  <pre class="language-css dark"><code>.hero {
+  /* Fallback for browsers without svh support */
+  height: 100vh;
+  /* Safer on mobile: sized to viewport with UI visible */
+  height: 100svh;
+}
+
+/* Avoid on desktop: vw includes scrollbar width,
+   triggering a horizontal overflow */
+.full-width {
+  width: 100vw; /* can produce a horizontal scrollbar */
+  width: 100%;  /* block elements: use this instead */
+}</code></pre>
+</section>
+
+<p>One more <code>vw</code> edge case: on desktop browsers, <code>100vw</code> includes the scrollbar width while the document flow does not. Setting <code>width: 100vw</code> on a block element will almost always produce a horizontal scrollbar. The correct pattern is <code>width: 100%</code>.</p>
+
+<h2 class="section-head">A decision rule, not a glossary</h2>
+
+<p>Each unit names an anchor. The right unit is the one whose anchor matches your intent:</p>
+
+<ul>
+  <li><strong><code>rem</code> for font sizes.</strong> One anchor, the root, shared by the whole document. Respects user preferences. Never compounds.</li>
+  <li><strong><code>em</code> for component-local spacing.</strong> Padding, margin, and gap in <code>em</code> scale proportionally with the component's own type size — exactly the behaviour you want from a self-contained component.</li>
+  <li><strong><code>%</code> for layout proportions.</strong> Column widths, container constraints, image sizing. Keep "relative to what?" in mind, especially for vertical properties.</li>
+  <li><strong><code>vw</code> / <code>vh</code> with new-unit fallbacks for viewport-filling geometry.</strong> Full-bleed sections, sticky overlays, anything that responds to screen size rather than content. Use <code>svh</code> / <code>dvh</code> / <code>lvh</code> with a <code>vh</code> fallback for mobile reliability.</li>
+  <li><strong><code>px</code> for fine, fixed detail.</strong> Borders, shadows, outlines — things that should not scale and do not affect accessibility when they stay fixed.</li>
+</ul>
+
+<p><code>px</code> is the stone path — fixed, unmoved by weather. <code>rem</code> is the hedge line — consistent across the whole plot, trimmed to one reference height. <code>em</code> is the groundcover — filling space in proportion to whatever grows beside it. <code>%</code> is the bed that expands with the plot. And <code>vh</code> / <code>vw</code> are the walls — they define the boundary, but on mobile those walls move more than you expect. Know which material you are working with, and the layout tends to hold.</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Values_and_units" rel="noopener noreferrer" target="_blank">CSS values and units - Learn web development | MDN</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/length" rel="noopener noreferrer" target="_blank">&lt;length&gt; CSS type - MDN Web Docs - Mozilla</a></li>
+    <li><a href="https://refine.dev/blog/rem-vs-em/" rel="noopener noreferrer" target="_blank">rem vs em - Everything you need to know</a></li>
+    <li><a href="https://www.dreamhost.com/blog/rem-vs-em/" rel="noopener noreferrer" target="_blank">REM vs. EM: How To Choose the Right CSS Unit</a></li>
+    <li><a href="https://dev.to/ochukodotspace/the-battle-of-the-units-px-vs-rem-vs-em-3ka8" rel="noopener noreferrer" target="_blank">The Battle of the Units: PX vs REM vs EM (font-size)</a></li>
+    <li><a href="https://www.reddit.com/r/Frontend/comments/k5vvij/confused_about_rem_unit_need_help_to_understand/" rel="noopener noreferrer" target="_blank">Confused about REM unit - need help to understand the ...</a></li>
+    <li><a href="https://web.dev/blog/viewport-units" rel="noopener noreferrer" target="_blank">The large, small, and dynamic viewport units | Blog</a></li>
+    <li><a href="https://medium.com/@tharunbalaji110/understanding-mobile-viewport-units-a-complete-guide-to-svh-lvh-and-dvh-0c905d96e21a" rel="noopener noreferrer" target="_blank">A Complete Guide to svh, lvh, and dvh</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
