@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="One word — adjoining — explains every CSS margin-collapsing surprise. Learn the spec rule, the BFC fence, and when negative margins change the arithmetic." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>Why Your Child's Margin Appears Above the Parent — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 10 · Box Model</div>
+          <h1 class="headline">Why Your Child's Margin Appears Above the Parent</h1>
+          <p class="deck">Every margin-collapsing surprise traces back to one word in the CSS 2.1 spec: adjoining. Understand what breaks adjacency and you understand all the cases at once.</p>
+        </header>
+
+        <section class="playground" data-playground data-display="block" aria-labelledby="playground-title">
+          <h2 class="playground-label" id="playground-title">Try it — change the parent, watch the child&#x27;s margin stop escaping</h2>
+          <div class="editor-stage" data-stage style="display: block" aria-live="polite">
+            <div class="editor-item">1</div>
+            <div class="editor-item">2</div>
+            <div class="editor-item">3</div>
+          </div>
+          <div class="controls">
+            <div class="row-label" id="display-label">display</div>
+            <div class="pillset" data-group="display" data-prop="display" data-css="display" data-default="block" aria-labelledby="display-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="block">block</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="flow-root">flow-root</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="flex">flex</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="grid">grid</button>
+            </div>
+            <div class="row-label" id="overflow-label">overflow</div>
+            <div class="pillset" data-group="overflow" data-prop="overflow" data-css="overflow" data-default="visible" aria-labelledby="overflow-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="visible">visible</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="hidden">hidden</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="auto">auto</button>
+            </div>
+            <div class="row-label" id="paddingTop-label">padding-top</div>
+            <div class="pillset" data-group="paddingTop" data-prop="paddingTop" data-css="padding-top" data-default="0px" aria-labelledby="paddingTop-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="0px">0px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="1px">1px</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="1rem">1rem</button>
+            </div>
+            <div class="row-label" id="borderTop-label">border-top</div>
+            <div class="pillset" data-group="borderTop" data-prop="borderTop" data-css="border-top" data-default="none" aria-labelledby="borderTop-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="none">none</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="1px solid transparent">1px solid transparent</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="2px solid currentColor">2px solid currentColor</button>
+            </div>
+          </div>
+          <pre class="live-output" aria-label="Generated CSS"><code data-output>.container {
+  display: block;
+  display: block;
+  overflow: visible;
+  padding-top: 0px;
+  border-top: none;
+}</code></pre>
+        </section>
+
+        <p class="lede">Set <code>margin-top: 2rem</code> on a child element inside a plain <code>&lt;div&gt;</code> and the space doesn't appear between parent and child — it appears <em>above the parent</em>, pushing the whole box down the page. The child's margin has escaped. This isn't a browser bug to memorize around; it's a direct consequence of one word in the CSS 2.1 specification, and once you see that word clearly, every margin-collapsing surprise becomes predictable.</p>
+
+<h2 class="section-head">One word from the spec: adjoining</h2>
+
+<p class="section-intro">The CSS 2.1 specification says margins collapse when they are <em>adjoining</em>. Two margins are adjoining when they belong to block-level boxes in the same block formatting context, with no line boxes, no clearance, no padding, and no border separating them. That's the entire model.</p>
+
+<p>The three cases you'll find in every tutorial — adjacent siblings, parent-and-first-child, and empty blocks — aren't three separate rules. They're three situations where the adjoining condition happens to be satisfied. Understand what breaks adjacency, and you understand all of them at once.</p>
+
+<p>Adjacent siblings collapse because nothing sits between the bottom margin of one paragraph and the top margin of the next. They're in the same block formatting context, touching directly. The parent-child case is stranger: a child's <code>margin-top</code> bleeds out through the parent because the parent has no border, no padding, and no content before the child — so the parent's own top margin and the child's top margin are, by the spec's definition, adjoining. They share the same edge. The empty-block case follows the same logic: an element with no height, no padding, and no border has its own top and bottom margins touching each other, so those collapse too, and the resulting margin can then collapse with whatever is adjacent to it.</p>
+
+<p>The historical context makes this feel less arbitrary. The feature was designed for document-flow typography — headings followed by paragraphs, paragraphs followed by block quotes. In that world, you want a heading's bottom margin and a paragraph's top margin to negotiate a single comfortable gap rather than stack. The spec authors were thinking about printed pages, not application layouts. Horizontal margins were intentionally excluded from collapsing because lines of text don't stack sideways.</p>
+
+<h2 class="section-head">The block formatting context is the fence</h2>
+
+<p class="section-intro">A block formatting context — a BFC — is a region of the page with opaque walls for margin collapse. Margins inside a BFC cannot collapse with margins outside it. Creating a new BFC around or inside an element is how you prevent collapse, and once you know that, every technique you've seen recommended makes immediate sense.</p>
+
+<section class="prop">
+  <h3>display: flow-root</h3>
+  <p>The cleanest modern way to create a BFC with no side effects. The element behaves exactly like a block box in terms of layout but establishes a new formatting context for its contents. A child's margin can no longer be adjoining to the parent's because the BFC boundary stands between them.</p>
+  <pre class="language-css dark"><code>.parent {
+  display: flow-root;
+}</code></pre>
+  <p>No clipping, no overflow changes, no effect on the parent's siblings. Reach for this when you want a BFC and nothing else.</p>
+</section>
+
+<section class="prop">
+  <h3>overflow: hidden (and its cousins)</h3>
+  <p>Any value of <code>overflow</code> other than <code>visible</code> also creates a BFC — which is why <code>overflow: hidden</code> has been the traditional collapse-stopper. It works for the same reason <code>flow-root</code> works: it establishes a new formatting context. The cost is that it can clip shadows, tooltips, and absolutely-positioned children that extend beyond the box. Older tutorials recommend it by default; prefer <code>flow-root</code> unless you actually want clipping.</p>
+  <pre class="language-css dark"><code>.parent {
+  overflow: hidden; /* creates a BFC, but clips overflow */
+}</code></pre>
+</section>
+
+<section class="prop">
+  <h3>border and padding</h3>
+  <p>Adding even <code>1px</code> of <code>padding-top</code> or <code>border-top</code> to a parent breaks the parent-child collapse — not because of any BFC, but because padding and border now separate the two margins. They are no longer adjoining by the spec's definition. This is the simplest fix for parent-child bleed-through and has no layout side effects when the space is intentional.</p>
+  <pre class="language-css dark"><code>.parent {
+  padding-top: 1px; /* margins no longer touch */
+}</code></pre>
+</section>
+
+<section class="prop">
+  <h3>display: flex and display: grid</h3>
+  <p>Flex and grid containers establish a formatting context for their children. Flex and grid <em>items</em> do not participate in margin collapsing with each other or with the container. This is why switching a parent to <code>display: flex</code> silently "fixes" collapsed margins — the formatting context changed, not your margins. If you're reaching for flex or grid purely to stop collapse, <code>flow-root</code> is more honest about intent. If you're already doing flex or grid layout, the collapse prevention comes free.</p>
+  <pre class="language-css dark"><code>.parent {
+  display: flex;
+  flex-direction: column; /* margins between children no longer collapse */
+}</code></pre>
+</section>
+
+<h2 class="section-head">When negative margins join the collapse</h2>
+
+<p class="section-intro">Negative margins don't follow the simple "largest wins" rule. The arithmetic is different, and it trips up developers who assume symmetry.</p>
+
+<p>When all collapsing margins are positive, the result is the largest single value — a <code>2rem</code> bottom margin and a <code>1rem</code> top margin collapse to <code>2rem</code>. When negative margins are involved, the result is the sum of the largest positive value and the most-negative value. A <code>2rem</code> positive margin collapsing with a <code>-1rem</code> negative margin produces <code>1rem</code>. Two negative margins collapsing with each other produce the most-negative value.</p>
+
+<pre class="language-css dark"><code>/* Collapsed result: 2rem + (−1rem) = 1rem */
+.above { margin-bottom: 2rem; }
+.below { margin-top: -1rem; }
+
+/* Collapsed result: −2rem (the more negative wins) */
+.above { margin-bottom: -1rem; }
+.below { margin-top: -2rem; }</code></pre>
+
+<p>Negative margins in a collapsing context are the most fragile scenario in practice. Some behaviors that appear consistent across Chromium and Safari rely on shared implementation details rather than specified behavior. If you're using negative margins to pull elements together, test across browsers and treat the result as potentially brittle.</p>
+
+<h2 class="section-head">Edge cases worth keeping in mind</h2>
+
+<p>Margin collapsing only applies to block-level boxes in normal flow. Inline-block elements, table cells, absolutely positioned elements, and fixed-position elements are all excluded — their margins never collapse. This is consistent across browsers and is specified in CSS 2.1, but it surprises developers who switch an element's display mode and find the spacing has changed for reasons they didn't anticipate.</p>
+
+<p>The recursive nature of collapsing is worth knowing: a grandchild's margin can collapse through an empty parent into a grandparent if nothing intervenes at either level. The adjoining condition applies transitively. If the parent has no padding, no border, no height, and no line boxes — and the grandparent has the same — the grandchild's margin travels all the way up.</p>
+
+<p>On logical properties: <code>margin-block-start</code> and <code>margin-block-end</code> collapse in the block direction following exactly the same rules as <code>margin-top</code> and <code>margin-bottom</code> in a horizontal writing mode. In a vertical writing mode, the block direction rotates and collapse follows accordingly. The model is consistent — it's always block-direction margins, not specifically vertical ones.</p>
+
+<p>The decision is straightforward once the model is clear. Reach for <code>display: flow-root</code> when you want a BFC without any other layout change — it's semantically precise and has no side effects. Reach for <code>display: flex</code> or <code>display: grid</code> when you're already doing that kind of layout; collapse prevention comes along for free. Add <code>padding</code> or <code>border</code> when the separation is genuinely part of the design. Avoid <code>overflow: hidden</code> unless you want clipping, and avoid negative-margin tricks in collapsing contexts unless you've tested them carefully.</p>
+
+<p>The parent-child bleed-through — the child's margin appearing above the parent — is the most disorienting version of this behavior because the visual result is so far from the intent. But it follows the same rule as everything else: two adjoining margins collapse. Put something between them, or build a fence with a new formatting context, and they stop being adjoining. The space goes where you put it.</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Box_model/Margin_collapsing" rel="noopener noreferrer" target="_blank">Mastering margin collapsing - CSS - MDN Web Docs</a></li>
+    <li><a href="https://forum.freecodecamp.org/t/working-with-css-transforms-overflow-and-filters-what-is-margin-collapsing-and-how-does-it-work/754014" rel="noopener noreferrer" target="_blank">Working with CSS Transforms, Overflow, and Filters</a></li>
+    <li><a href="https://www.joshwcomeau.com/css/rules-of-margin-collapse/" rel="noopener noreferrer" target="_blank">The Rules of Margin Collapse</a></li>
+    <li><a href="https://medium.com/@Adekola_Olawale/debugging-and-fixing-collapsing-margins-in-css-f8a4b4955ff0" rel="noopener noreferrer" target="_blank">Debugging and Fixing Collapsing Margins in CSS</a></li>
+    <li><a href="https://www.w3.org/TR/2015/WD-css-grid-1-20150917/" rel="noopener noreferrer" target="_blank">CSS Grid Layout Module Level 1</a></li>
+    <li><a href="https://world.taobao.com/lang/en-us/shopping-guide/2008756106226040832.htm" rel="noopener noreferrer" target="_blank">Fix Layout Bugs, Margin Collapse &amp; Responsive Design Issues</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Display/Block_formatting_context" rel="noopener noreferrer" target="_blank">Block formatting context - CSS - MDN Web Docs</a></li>
+    <li><a href="https://www.w3.org/TR/CSS2/box.html" rel="noopener noreferrer" target="_blank">8. Box model</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script type="module" src="/js/issue-playground.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
