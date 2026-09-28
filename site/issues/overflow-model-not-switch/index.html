@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="CSS overflow does more than hide content. Learn how hidden, clip, scroll, and auto affect scroll containers, BFC, and axis coupling." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>overflow Is a Model, Not a Switch — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 11 · CSS Overflow</div>
+          <h1 class="headline">overflow Is a Model, Not a Switch</h1>
+          <p class="deck">Every overflow value except visible changes how a box participates in layout — not just what users can see. Here is what each value actually does, and why picking the wrong one causes bugs.</p>
+        </header>
+
+        <section class="playground" data-playground data-display="block" aria-labelledby="playground-title">
+          <h2 class="playground-label" id="playground-title">Try it — change overflow on the container, watch content clip or scroll</h2>
+          <div class="editor-stage" data-stage style="display: block" aria-live="polite">
+            <div class="editor-item">1</div>
+            <div class="editor-item">2</div>
+            <div class="editor-item">3</div>
+          </div>
+          <div class="controls">
+            <div class="row-label" id="overflow-label">overflow</div>
+            <div class="pillset" data-group="overflow" data-prop="overflow" data-css="overflow" data-default="visible" aria-labelledby="overflow-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="visible">visible</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="hidden">hidden</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="scroll">scroll</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="auto">auto</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="clip">clip</button>
+            </div>
+            <div class="row-label" id="overflowX-label">overflow-x</div>
+            <div class="pillset" data-group="overflowX" data-prop="overflowX" data-css="overflow-x" data-default="visible" aria-labelledby="overflowX-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="visible">visible</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="hidden">hidden</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="scroll">scroll</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="auto">auto</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="clip">clip</button>
+            </div>
+            <div class="row-label" id="overflowY-label">overflow-y</div>
+            <div class="pillset" data-group="overflowY" data-prop="overflowY" data-css="overflow-y" data-default="visible" aria-labelledby="overflowY-label">
+              <button class="pill active" type="button" aria-pressed="true" data-value="visible">visible</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="hidden">hidden</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="scroll">scroll</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="auto">auto</button>
+              <button class="pill" type="button" aria-pressed="false" data-value="clip">clip</button>
+            </div>
+          </div>
+          <pre class="live-output" aria-label="Generated CSS"><code data-output>.container {
+  display: block;
+  overflow: visible;
+  overflow-x: visible;
+  overflow-y: visible;
+}</code></pre>
+        </section>
+
+        <p class="lede">A floated image escaping its container, a decorative banner bleeding into the next section, a sidebar that refuses to scroll — these are all overflow problems, but they rarely share the same fix. <code>overflow</code> is not a four-option switch. It is a model that governs whether a box becomes a scroll container, whether it establishes a new block formatting context, and whether content is merely hidden from view or actually removed from layout influence. Picking the wrong value is one of the most common roots of mysterious CSS layout bugs.</p>
+
+<h2 class="section-head">Start from <code>visible</code> — the baseline that does nothing</h2>
+
+<p><code>overflow: visible</code> is the default, which is why tutorials rarely mention it. But it is the conceptual anchor for everything else, and it is worth naming explicitly: <code>visible</code> is the only value that does <em>not</em> create a scroll container and does <em>not</em> establish a block formatting context. Content paints wherever it needs to, even if that means spilling outside the box's border edge. The box's size is determined by its content in normal flow, and its relationship to neighboring boxes is unchanged.</p>
+
+<p>Every other value — <code>hidden</code>, <code>scroll</code>, <code>auto</code>, and the newer <code>clip</code> — is a departure from this baseline. Understanding what each departure costs, not just what it gains, is the whole game.</p>
+
+<h2 class="section-head">The four classic values</h2>
+
+<section class="prop">
+  <h3>hidden</h3>
+  <p><code>overflow: hidden</code> clips content at the box's padding edge. Content beyond that boundary is invisible and cannot be scrolled to — gone from the user's perspective, but not from the layout. The overflowing content still exists in the DOM, still occupies space in its own formatting context, and still participates in focus order and find-in-page. Clipping the paint does not remove the element.</p>
+  <p>The bigger surprise is what <code>hidden</code> does to the <em>box itself</em>: it establishes a new block formatting context. Floated children are contained, and margin collapsing between the box and its children is suppressed. Developers who reach for <code>overflow: hidden</code> to clip a decorative image are quietly opting into float containment and margin-collapsing suppression — layout behaviors that have nothing to do with their actual intent.</p>
+  <pre class="language-css dark"><code>/* Clips the image AND creates a new BFC.
+   Floated children are now contained. */
+.card {
+  overflow: hidden;
+}</code></pre>
+</section>
+
+<section class="prop">
+  <h3>scroll</h3>
+  <p><code>overflow: scroll</code> creates a scroll container and a block formatting context, but always reserves space for scrollbars — even when there is nothing to scroll. On operating systems with persistent scrollbars (most Windows configurations), a scrollbar gutter appears regardless of whether content overflows. That reserved space can cause layout shift when content is added or removed dynamically, because the available width inside the container changes. The modern answer is the <code>scrollbar-gutter</code> property, which reserves gutter space independently of whether a scrollbar is present.</p>
+  <pre class="language-css dark"><code>/* Always shows scrollbar gutters; content area is stable. */
+.feed {
+  overflow: auto;
+  scrollbar-gutter: stable;
+}</code></pre>
+</section>
+
+<section class="prop">
+  <h3>auto</h3>
+  <p><code>overflow: auto</code> creates a scroll container and a block formatting context, just like <code>scroll</code>, but scrollbars only appear when content actually overflows. For most scrollable regions it is the right default. The caveat is the same as with <code>scroll</code>: when a scrollbar appears it consumes space from the content area, which can reflow content. For interfaces where that reflow is unacceptable, pair it with <code>scrollbar-gutter: stable</code>.</p>
+</section>
+
+<section class="prop">
+  <h3>clip</h3>
+  <p><code>overflow: clip</code> is the surgical option most tutorials have not caught up to yet. Like <code>hidden</code>, it clips content at the box's padding edge — but unlike <code>hidden</code>, it does <em>not</em> create a scroll container and does <em>not</em> establish a block formatting context. It is a pure paint operation. Floats are not contained. Margin collapsing is not suppressed. When you want to clip a decorative overflow without side effects, <code>clip</code> is the right tool.</p>
+  <p>Browser support is solid across modern browsers, though <code>clip</code> is absent from Internet Explorer. Authors targeting legacy environments must use <code>hidden</code> and accept the BFC side effects.</p>
+  <pre class="language-css dark"><code>/* Clips paint only. No BFC, no scroll container. */
+.hero-image-wrapper {
+  overflow: clip;
+}</code></pre>
+</section>
+
+<h2 class="section-head">The axis-coupling rule</h2>
+
+<p><code>overflow</code> is shorthand for <code>overflow-x</code> and <code>overflow-y</code>. <code>overflow: hidden</code> sets both axes to <code>hidden</code>. Two values — <code>overflow: hidden auto</code> — apply the first to the x axis and the second to the y axis. So far, straightforward.</p>
+
+<p>The rule that catches developers off guard: if you set one axis to <code>hidden</code>, <code>scroll</code>, or <code>auto</code>, and explicitly set the <em>other</em> axis to <code>visible</code>, the browser silently overrides that <code>visible</code> to <code>auto</code>. This is specified behavior, not a bug. A scroll container cannot simultaneously scroll on one axis and allow content to paint freely outside its bounds on the other — the rendering model does not permit it, so the browser resolves the conflict by promoting <code>visible</code> to <code>auto</code>.</p>
+
+<p>The practical consequence is that this code does not do what it appears to say:</p>
+
+<pre class="language-css dark"><code>/* Intended: clip horizontal overflow, allow vertical overflow.
+   Actual: overflow-y computes as auto, not visible. */
+.slider {
+  overflow-x: hidden;
+  overflow-y: visible;
+}</code></pre>
+
+<p>If you genuinely need to clip one axis without affecting the other, <code>overflow: clip</code> is the fix. Because <code>clip</code> does not create a scroll container, it does not trigger the axis-coupling rule:</p>
+
+<pre class="language-css dark"><code>/* This works as intended. */
+.slider {
+  overflow-x: clip;    /* clips paint on x, no scroll container */
+  overflow-y: visible; /* genuinely visible — not overridden */
+}</code></pre>
+
+<p>The companion property <code>overflow-clip-margin</code> lets you define how far outside the box clipped content may paint before being cut — useful when a box-shadow or outline should remain visible beyond the element's edge while the content itself is clipped. Note that <code>overflow-clip-margin</code> only takes effect when both axes are set to <code>clip</code>.</p>
+
+<h2 class="section-head">Choosing the right value</h2>
+
+<p>Start by asking what you actually want the box to do:</p>
+
+<ul>
+  <li><strong>Let content paint freely, no containment needed:</strong> <code>overflow: visible</code>. This is the default — do nothing.</li>
+  <li><strong>Clip decorative overflow without affecting layout:</strong> <code>overflow: clip</code>. No BFC, no scroll container, no axis-coupling risk.</li>
+  <li><strong>Clip content and also need float containment or margin-collapsing suppression:</strong> <code>overflow: hidden</code>. You are getting a BFC intentionally.</li>
+  <li><strong>Create a scrollable region, show scrollbars only when needed:</strong> <code>overflow: auto</code>. Pair with <code>scrollbar-gutter: stable</code> if layout stability matters.</li>
+  <li><strong>Create a scrollable region with permanently reserved scrollbar space:</strong> <code>overflow: scroll</code>. Useful when content will always overflow and you want no reflow when it does.</li>
+</ul>
+
+<p>One more pattern worth naming: the three-property recipe for truncating text with an ellipsis — <code>overflow: hidden; white-space: nowrap; text-overflow: ellipsis</code> — is widely copy-pasted without explanation. All three are load-bearing. <code>text-overflow</code> only applies when overflow is actually occurring (<code>overflow: hidden</code> or <code>clip</code>), and <code>white-space: nowrap</code> is what forces the text to overflow in the first place rather than wrapping to a new line. Remove any one of the three and the ellipsis disappears.</p>
+
+<pre class="language-css dark"><code>/* All three are load-bearing. */
+.label {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}</code></pre>
+
+<p>The overflow model is one of those corners of CSS where the default is invisible — content just goes where it goes — and the moment you intervene, you are doing more than you might realize. Naming the scroll container, the block formatting context, and the axis-coupling rule gives you the vocabulary to read what your CSS is actually doing, not just what you intended it to do.</p>
+
+---
+
+<meta name="description" content="CSS overflow is a layout model, not a switch. Learn how hidden, clip, scroll, auto, and axis-coupling actually work.">
+<meta name="tags" content="overflow, scroll container, block formatting context, overflow clip, CSS layout">
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow" rel="noopener noreferrer" target="_blank">overflow CSS property - MDN Web Docs</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow-x" rel="noopener noreferrer" target="_blank">overflow-x CSS property - MDN Web Docs</a></li>
+    <li><a href="https://www.w3schools.com/css/css_overflow.asp" rel="noopener noreferrer" target="_blank">CSS The overflow Property</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/overflow-y" rel="noopener noreferrer" target="_blank">overflow-y CSS property - MDN Web Docs</a></li>
+    <li><a href="https://stackoverflow.com/questions/6421966/css-overflow-x-visible-and-overflow-y-hidden-causing-scrollbar-issue" rel="noopener noreferrer" target="_blank">visible; and overflow-y: hidden; causing scrollbar issue</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Display/Block_formatting_context" rel="noopener noreferrer" target="_blank">Block formatting context - CSS - MDN Web Docs</a></li>
+    <li><a href="https://www.mironsoft.de/en/blog/css-overflow-clip-vs-hidden-performance" rel="noopener noreferrer" target="_blank">CSS overflow: clip vs. hidden: Performance Differences and ...</a></li>
+    <li><a href="https://forum.freecodecamp.org/t/adding-overflow-hidden-to-a-element-is-changing-the-position-of-elements-of-surrounding-it/398352" rel="noopener noreferrer" target="_blank">Adding &#x27;overflow:hidden&#x27; to a element is changing ...</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script type="module" src="/js/issue-playground.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
