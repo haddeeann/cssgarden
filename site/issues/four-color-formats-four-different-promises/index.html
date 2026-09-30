@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f1f2ea" />
+    <meta name="description" content="Hex, rgb(), hsl(), and oklch() aren't interchangeable notations — they're different models of color. Here's which ones to trust and when." />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/site.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" />
+
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-EGLR7WGC0W"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EGLR7WGC0W');
+    </script>
+
+    <title>Four Color Formats, Four Different Promises — Foxy CSS</title>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="rail masthead-row">
+        <a class="nameplate" href="/">Foxy CSS</a>
+        <nav class="masthead-links" aria-label="Primary navigation">
+          <a class="current" href="/">Issues</a>
+          <a href="/about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="rail page-main">
+      <article class="post">
+        <header class="opener">
+          <div class="kicker"><a href="/">Issues</a> / Issue 12 · Color Spaces</div>
+          <h1 class="headline">Four Color Formats, Four Different Promises</h1>
+          <p class="deck">Hex and rgb() describe the same gamut. HSL lies about lightness. OKLCH makes a different promise entirely — and it's the one worth building on.</p>
+        </header>
+
+<p class="lede">Hex, <code>rgb()</code>, <code>hsl()</code>, and <code>oklch()</code> are not four ways to write the same color. They are four different promises about what a color <em>means</em> — and two of those promises are more honest than the others.</p>
+
+<p>Most developers learn color as hex codes and never fully revisit the decision. That works until it doesn't: until you try to build a consistent type scale where every label reads at the same visual weight, or a button palette where hover states feel evenly stepped, or a theme that needs to stay accessible across its full range. At that point, the format you chose stops being a notation preference and starts being a structural constraint.</p>
+
+<h2 class="section-head">The sRGB family — hex and rgb()</h2>
+
+<p class="section-intro">Hex codes and <code>rgb()</code> are the same thing wearing different clothes. Both describe a color as a mixture of red, green, and blue primaries inside the sRGB color space. The difference is purely syntactic.</p>
+
+<p>Hex comes in four variants, all valid in every current browser:</p>
+
+<ul>
+  <li><code>#RGB</code> — three digits, each expanded to two (<code>#F0A</code> becomes <code>#FF00AA</code>)</li>
+  <li><code>#RRGGBB</code> — the familiar six-digit form</li>
+  <li><code>#RGBA</code> — four digits, the fourth being alpha (<code>#F0A8</code> means roughly 53% opacity)</li>
+  <li><code>#RRGGBBAA</code> — eight digits, full precision with alpha channel</li>
+</ul>
+
+<pre class="language-css dark"><code>/* All four hex variants — same color family, different precision */
+color: #C0F;          /* #CC00FF shorthand */
+color: #CC00FF;       /* explicit 6-digit */
+color: #CC00FFA0;     /* 8-digit with ~63% alpha */
+color: #C0FA;         /* 4-digit shorthand of the above */
+</code></pre>
+
+<p>The <code>rgb()</code> function covers the same ground. CSS Color Level 4 introduced a cleaner space-separated syntax alongside the older comma form — both are valid, though the comma form remains safer when targeting older environments:</p>
+
+<section class="prop">
+  <h3>rgb() — legacy and modern syntax</h3>
+  <pre class="language-css dark"><code>/* Legacy comma syntax — still valid, still safe */
+color: rgba(204, 0, 255, 0.63);
+
+/* Level 4 space-separated syntax */
+color: rgb(204 0 255 / 0.63);
+
+/* rgba() is now an alias for rgb() — they are identical */
+color: rgb(204 0 255 / 63%);
+</code></pre>
+  <p>The slash separates color channels from the alpha value. <code>rgba()</code> is not a separate function in Level 4 — it is accepted as an alias, but <code>rgb()</code> handles alpha directly.</p>
+</section>
+
+<p>Everything in this family lives in sRGB. The gamut is the same regardless of which syntax you use. If you want a more vivid red than sRGB allows, no hex code or <code>rgb()</code> value can get you there.</p>
+
+<h2 class="section-head">HSL — the cylindrical illusion</h2>
+
+<p class="section-intro">HSL was designed to be more intuitive than RGB, and in one sense it is: hue as a degree on a color wheel, saturation as a percentage of vividness, lightness as a percentage from black to white. The problem is that lightness axis.</p>
+
+<p>HSL's <code>L</code> value is calculated by averaging the minimum and maximum RGB channel values of the equivalent <code>rgb()</code> color. That is a mathematical shortcut, not a model of human vision. The consequence is concrete: a saturated yellow at <code>hsl(60 100% 50%)</code> and a saturated blue at <code>hsl(240 100% 50%)</code> share an identical lightness value, but they look dramatically different in perceived brightness. Yellow reads almost white; blue reads much darker. Your eyes are not wrong — the HSL lightness number is.</p>
+
+<section class="prop">
+  <h3>hsl() — syntax and the lightness caveat</h3>
+  <pre class="language-css dark"><code>/* These share L: 50%, but look nothing like the same brightness */
+color: hsl(60 100% 50%);   /* vivid yellow — reads very bright */
+color: hsl(240 100% 50%);  /* vivid blue  — reads much darker */
+
+/* Level 4 space-separated form (no commas) */
+color: hsl(240 100% 50% / 0.8);
+</code></pre>
+  <p>HSL is still sRGB under the hood — cylindrical-coordinate sRGB. Same gamut, different axis arrangement, with a lightness axis that reflects the RGB model's geometry rather than perceptual reality.</p>
+</section>
+
+<p>For quick color picking, HSL is genuinely friendlier than raw <code>rgb()</code>. For building accessible color systems — where you need to guarantee that a text color has sufficient contrast against its background across a range of hues — HSL's lightness value will mislead you. Two tokens with the same <code>L</code> will fail contrast checks at different rates depending on their hue.</p>
+
+<h2 class="section-head">OKLCH — a different underlying model</h2>
+
+<p class="section-intro">OKLCH is not a new syntax for sRGB. It is a different color space, built on a perceptually uniform model: equal numeric steps in its lightness channel correspond to approximately equal perceived changes in brightness, regardless of hue.</p>
+
+<p>The three channels:</p>
+
+<ul>
+  <li><strong>L</strong> — lightness, from <code>0</code> (black) to <code>1</code> (white). A value of <code>0.5</code> is genuinely mid-brightness to a human eye across all hues.</li>
+  <li><strong>C</strong> — chroma, the vividness of the color. It starts at <code>0</code> (gray) with no fixed upper bound — the maximum depends on the hue and what the display can render.</li>
+  <li><strong>H</strong> — hue angle in degrees, the same wheel concept as HSL but mapped to a perceptually corrected space.</li>
+</ul>
+
+<section class="prop">
+  <h3>oklch() — syntax and fallback pattern</h3>
+  <pre class="language-css dark"><code>/* oklch(lightness chroma hue) */
+color: oklch(0.55 0.22 264);         /* a vivid blue */
+color: oklch(0.55 0.22 264 / 0.8);  /* same, with alpha */
+
+/* Fallback for browsers before Chrome 111 / Firefox 128 / Safari 16.4 */
+color: #5500ff;                /* sRGB fallback first */
+color: oklch(0.45 0.28 264);   /* capable browsers use this */
+</code></pre>
+  <p>Declare the hex or <code>rgb()</code> value first, then the <code>oklch()</code> value. Browsers that do not understand <code>oklch()</code> ignore the second declaration and keep the first. Browsers that do understand it override with the richer value.</p>
+</section>
+
+<p>OKLCH reached Baseline "Widely Available" status with Chrome 111, Firefox 128, and Safari 16.4. For new projects not targeting older browser versions, it is safe to use as the primary format with hex fallbacks where needed.</p>
+
+<h2 class="section-head">The gamut question — and what clipping means in practice</h2>
+
+<p class="section-intro">OKLCH can describe colors that do not exist inside the sRGB gamut. On a Display-P3 screen, those colors are real and renderable. On a standard sRGB display, the browser clips them to the nearest displayable color — silently, without an error.</p>
+
+<p>Clipping is not always dramatic. A slightly out-of-gamut value might clip to something barely distinguishable from the intended color. But at high chroma values — particularly in the red and green regions of the hue wheel — clipping can shift the apparent hue noticeably. Test your OKLCH values on an sRGB display as well as a wide-gamut one, and use the <code>color-gamut</code> media feature when the distinction matters:</p>
+
+<pre class="language-css dark"><code>/* Safe sRGB value for all displays */
+.button {
+  background: oklch(0.55 0.18 145);   /* moderate chroma, sRGB-safe green */
+}
+
+/* Richer value served only to P3-capable displays */
+@media (color-gamut: p3) {
+  .button {
+    background: oklch(0.55 0.28 145); /* higher chroma, genuinely vivid */
+  }
+}
+</code></pre>
+
+<p>This pattern gives every display the best color it can render without asking sRGB screens to approximate something they cannot show accurately.</p>
+
+<p>The same perceptual uniformity that makes OKLCH useful for lightness scales also makes it the right interpolation space for <code>color-mix()</code>. Mixing two colors in OKLCH produces a midpoint that looks like a midpoint — hue, lightness, and vividness all step evenly. Mixing in sRGB often produces a muddy or unexpectedly dark intermediate, because the geometry of the space does not match the geometry of perception.</p>
+
+<pre class="language-css dark"><code>/* color-mix() using oklch as the interpolation space */
+color: color-mix(in oklch, oklch(0.6 0.2 30), oklch(0.6 0.2 270));
+</code></pre>
+
+<p>The relative color syntax — <code>oklch(from var(--brand) l c calc(h + 30))</code> — extends this further, letting you derive an entire palette from a single token by adjusting individual channels arithmetically. It only works cleanly when the source format is perceptually uniform. Relative color syntax in HSL carries the same perceptual mismatch problems as HSL itself.</p>
+
+<p>The practical decision: use hex when you are matching a value from a design file or communicating with a tool that outputs hex. Use <code>rgb()</code> when you need sRGB values in code and want readable channel numbers. Use HSL when you need to quickly eyeball a hue and you are not building a system that depends on consistent perceived lightness. Use OKLCH when you are authoring a design system, building accessible color scales, or reaching for colors beyond sRGB — and include a hex fallback until your browser-support floor clears the 2023 threshold. The formats are not interchangeable. Each one is a different promise, and now you know which ones to trust.</p>
+<section class="article-sources">
+  <h2>Sources</h2>
+  <ol>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/oklch" rel="noopener noreferrer" target="_blank">oklch() CSS function - MDN Web Docs - Mozilla</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Colors/Color_values" rel="noopener noreferrer" target="_blank">CSS color values - MDN Web Docs</a></li>
+    <li><a href="https://evilmartians.com/chronicles/oklch-in-css-why-quit-rgb-hsl" rel="noopener noreferrer" target="_blank">OKLCH in CSS: why we moved from RGB and HSL</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value" rel="noopener noreferrer" target="_blank">&lt;color&gt; CSS type - MDN Web Docs - Mozilla</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Colors/Using_relative_colors" rel="noopener noreferrer" target="_blank">Using relative colors - CSS - MDN Web Docs</a></li>
+    <li><a href="https://www.w3.org/TR/css-color-4/" rel="noopener noreferrer" target="_blank">CSS Color Module Level 4</a></li>
+    <li><a href="https://www.reddit.com/r/css/comments/1dchi49/why_is_oklch_rarely_used/" rel="noopener noreferrer" target="_blank">Why is OKLCH rarely used? : r/css</a></li>
+    <li><a href="https://ava-palettes.com/modern-color-science" rel="noopener noreferrer" target="_blank">OKLCH vs RGB, HEX, HSL: Modern Color Science for ...</a></li>
+  </ol>
+</section>
+      </article>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  </body>
+</html>
